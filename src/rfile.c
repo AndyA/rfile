@@ -215,7 +215,21 @@ rfile_close( rfile * rf ) {
 
 off_t
 rfile_lseek( rfile * rf, off_t offset, int whence ) {
-  return 0;
+  switch ( whence ) {
+  case SEEK_SET:
+    rf->fptr = offset;
+    break;
+  case SEEK_CUR:
+    rf->fptr += offset;
+    break;
+  case SEEK_END:
+    rf->fptr = rf->ext + offset;
+    break;
+  default:
+    errno = EINVAL;
+    return -1;
+  }
+  return rf->fptr;
 }
 
 ssize_t
@@ -226,8 +240,88 @@ rfile_read( rfile * rf, void *buf, size_t nbyte ) {
   return rfile_readv( rf, &iov, 1 );
 }
 
+typedef struct {
+  const struct iovec *iov;
+  int iovcnt;
+  int pos;
+  size_t carry;
+} rfile__iov_state;
+
+static void
+rfile__init_iov_state( rfile__iov_state * st, const struct iovec *iov,
+                       int iovcnt ) {
+  st->iov = iov;
+  st->iovcnt = iovcnt;
+  st->pos = 0;
+  st->carry = 0;
+}
+
+static int
+rfile__fill_iov( rfile__iov_state * st, struct iovec *iov, int iovsz,
+                 size_t * avail ) {
+  int iovcnt = 0;
+
+  while ( *avail > 0 && st->pos < st->iovcnt && iovcnt < iovsz ) {
+    size_t cav = st->iov[st->pos].iov_len - st->carry;
+    if ( cav > *avail )
+      cav = *avail;
+    iov[iovcnt].iov_base = st->iov[st->pos].iov_base + st->carry;
+    iov[iovcnt++].iov_len = cav;
+    *avail -= cav;
+    st->carry += cav;
+    if ( st->carry == st->iov[st->pos].iov_len ) {
+      st->carry = 0;
+      st->pos++;
+    }
+  }
+
+  return iovcnt;
+}
+
 ssize_t
 rfile_readv( rfile * rf, const struct iovec * iov, int iovcnt ) {
+  rfile__iov_state st;
+  struct iovec iv[256];
+  int ivc, fd;
+
+  if ( rf->fptr > rf->ext ) {
+    errno = EINVAL;
+    return -1;
+  }
+
+  if ( rf->fptr == rf->ext )
+    return 0;
+
+  if ( rfile__seek( rf, rf->fptr ) < 0 )
+    return -1;
+
+  rfile__init_iov_state( &st, iov, iovcnt );
+
+  for ( ;; ) {
+    size_t avail;
+    switch ( rf->c_hdr.type ) {
+    case rfile_DATA_IN:
+    case rfile_DATA_OUT:
+      avail = rf->c_hdr.pos.end - rf->fptr;
+      fd = rf->fd;
+      if ( lseek
+           ( fd,
+             rf->c_pos + rfile_HEADER_SIZE + rf->fptr -
+             rf->c_hdr.pos.start, SEEK_SET ) < 0 )
+        return -1;
+      break;
+    case rfile_REF_IN:
+    case rfile_REF_OUT:
+      break;
+    default:
+      errno = EIO;
+      return -1;
+    }
+    ivc =
+        rfile__fill_iov( &st, iv, sizeof( iv ) / sizeof( iv[0] ), &avail );
+    /* read etc */
+  }
+
   return 0;
 }
 

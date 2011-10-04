@@ -5,19 +5,19 @@
 
 #include "../config.h"
 
-#define rfile_FOURCC(s) \
-  ( (unsigned long) \
-    ( ( (unsigned char) ((s)[3]) << 24 ) | \
-      ( (unsigned char) ((s)[2]) << 16 ) | \
-      ( (unsigned char) ((s)[1]) <<  8 ) | \
-      ( (unsigned char) ((s)[0]) <<  0 ) ) )
+#define rfile_FOURCC(s0, s1, s2, s3) \
+  ( (unsigned int) \
+    ( ( (unsigned char) (s3) << 24 ) | \
+      ( (unsigned char) (s2) << 16 ) | \
+      ( (unsigned char) (s1) <<  8 ) | \
+      ( (unsigned char) (s0) <<  0 ) ) )
 
 #define rfile_FMT_VER  1
-#define rfile_SIG      rfile_FOURCC("rFlE")
-#define rfile_DATA_IN  rfile_FOURCC("DATA")
-#define rfile_DATA_OUT rfile_FOURCC("data")
-#define rfile_REF_IN   rfile_FOURCC("REF ")
-#define rfile_REF_OUT  rfile_FOURCC("ref ")
+#define rfile_SIG      rfile_FOURCC('r', 'F', 'l', 'E')
+#define rfile_DATA_IN  rfile_FOURCC('D', 'A', 'T', 'A')
+#define rfile_DATA_OUT rfile_FOURCC('d', 'a', 't', 'a')
+#define rfile_REF_IN   rfile_FOURCC('R', 'E', 'F', ' ')
+#define rfile_REF_OUT  rfile_FOURCC('r', 'e', 'f', ' ')
 
 typedef struct {
   off_t start;
@@ -37,6 +37,7 @@ typedef struct {
 typedef struct {
   int fd;
   off_t ext;
+  off_t fptr;                   /* file offset */
 
   rfile_chunk_header c_hdr;     /* current chunk */
   off_t c_pos;                  /* pos of chunk in file */
