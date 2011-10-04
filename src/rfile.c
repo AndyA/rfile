@@ -96,6 +96,7 @@ rfile__setpos( rfile * rf, off_t pos ) {
   if ( rfile__ghdr( rf, &rf->c_hdr ) < 0 )
     return -1;
   rf->c_pos = pos;
+  return 0;
 }
 
 static int
@@ -282,7 +283,8 @@ ssize_t
 rfile_readv( rfile * rf, const struct iovec * iov, int iovcnt ) {
   rfile__iov_state st;
   struct iovec iv[256];
-  int ivc, fd;
+  int ivc;
+  size_t got;
 
   if ( rf->fptr > rf->ext ) {
     errno = EINVAL;
@@ -299,6 +301,9 @@ rfile_readv( rfile * rf, const struct iovec * iov, int iovcnt ) {
 
   for ( ;; ) {
     size_t avail;
+    int fd;
+    off_t next;
+
     switch ( rf->c_hdr.type ) {
     case rfile_DATA_IN:
     case rfile_DATA_OUT:
@@ -317,9 +322,27 @@ rfile_readv( rfile * rf, const struct iovec * iov, int iovcnt ) {
       errno = EIO;
       return -1;
     }
-    ivc =
-        rfile__fill_iov( &st, iv, sizeof( iv ) / sizeof( iv[0] ), &avail );
-    /* read etc */
+    while ( avail > 0 && st.pos < st.iovcnt ) {
+      size_t ov = avail;
+      ssize_t cnt;
+      ivc =
+          rfile__fill_iov( &st, iv, sizeof( iv ) / sizeof( iv[0] ),
+                           &avail );
+      cnt = readv( fd, iv, ivc );
+      if ( cnt < 0 )
+        return cnt;
+      if ( cnt != ov - avail ) {
+        errno = EIO;
+        return -1;
+      }
+      got += cnt;
+      rf->fptr += cnt;
+    }
+
+    if ( st.pos == st.iovcnt || rf->fptr == rf->ext )
+      return got;
+    if ( rfile__setpos( rf, next ) < 0 )
+      return -1;
   }
 
   return 0;
@@ -376,6 +399,26 @@ rfile_writeref( rfile * rf, const char *url, const rfile_range * range,
 }
 
 static void
+test_read( void ) {
+  rfile *rf;
+  char buf[128];
+
+  rf = rfile_open( "foo.rfile", O_RDONLY );
+  for ( ;; ) {
+    ssize_t got = rfile_read( rf, buf, sizeof( buf ) );
+    if ( got == 0 )
+      break;
+    if ( got < 0 ) {
+      fprintf( stderr, "Read error: %d\n", errno );
+      exit( 1 );
+    }
+    fwrite( buf, 1, got, stdout );
+  }
+
+  rfile_close( rf );
+}
+
+static void
 test_write( void ) {
   const char *msg = "Hello, World\n";
   rfile *rf;
@@ -392,6 +435,7 @@ test_write( void ) {
 int
 main( void ) {
   test_write(  );
+  test_read();
   return 0;
 }
 
