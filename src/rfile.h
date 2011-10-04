@@ -7,11 +7,13 @@
 
 #define rfile_FOURCC(s) \
   ( (unsigned long) \
-    ( ( (unsigned char) ((s)[0]) << 24 ) | \
-      ( (unsigned char) ((s)[1]) << 16 ) | \
-      ( (unsigned char) ((s)[2]) <<  8 ) | \
-      ( (unsigned char) ((s)[3]) <<  0 ) ) )
+    ( ( (unsigned char) ((s)[3]) << 24 ) | \
+      ( (unsigned char) ((s)[2]) << 16 ) | \
+      ( (unsigned char) ((s)[1]) <<  8 ) | \
+      ( (unsigned char) ((s)[0]) <<  0 ) ) )
 
+#define rfile_FMT_VER  1
+#define rfile_SIG      rfile_FOURCC("rFlE")
 #define rfile_DATA_IN  rfile_FOURCC("DATA")
 #define rfile_DATA_OUT rfile_FOURCC("data")
 #define rfile_REF_IN   rfile_FOURCC("REF ")
@@ -25,16 +27,23 @@ typedef struct {
 typedef struct {
   unsigned long sig;
   unsigned long version;
-  unsigned long length;
   unsigned long type;
+  off_t length;
   rfile_range pos;
 } rfile_chunk_header;
 
+#define rfile_HEADER_SIZE sizeof(rfile_chunk_header)
+
 typedef struct {
   int fd;
+  off_t ext;
+
+  rfile_chunk_header c_hdr;     /* current chunk */
+  off_t c_pos;                  /* pos of chunk in file */
 
 } rfile;
 
+rfile *rfile_create( const char *name, mode_t mode );
 rfile *rfile_open( const char *name, int oflag );
 int rfile_close( rfile * rf );
 off_t rfile_lseek( rfile * rf, off_t offset, int whence );
