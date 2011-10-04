@@ -6,3 +6,12 @@ which contains either literal data or a reference to a number of byte
 ranges in another file.
 
 Via this library they can be made to appear as regular files.
+
+Characteristics
+===============
+
+Supports normal POSIX-like file I/O (open, read, write, lseek, close).
+
+Random access reading.
+
+Append only writing.

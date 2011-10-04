@@ -1,9 +1,6 @@
-#                                               -*- Autoconf -*-
-# Process this file with autoconf to produce a configure script.
-
 AC_PREREQ([2.68])
 AC_INIT([rfile], [0.1], [andy@hexten.net])
-AM_INIT_AUTOMAKE([-Wall])
+AM_INIT_AUTOMAKE
 AC_CONFIG_FILES([Makefile src/Makefile])
 AC_CONFIG_SRCDIR([src/rfile.c])
 AC_CONFIG_HEADERS([config.h])
