@@ -1,0 +1,8 @@
+rfile 0.1
+=========
+
+rfile's are reference files. They contain a series of chunks each of
+which contains either literal data or a reference to a number of byte
+ranges in another file.
+
+Via this library they can be made to appear as regular files.
