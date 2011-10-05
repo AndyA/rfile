@@ -5,8 +5,13 @@ AC_CONFIG_FILES([Makefile src/Makefile])
 AC_CONFIG_SRCDIR([src/rfile.c])
 AC_CONFIG_HEADERS([config.h])
 
+AC_ARG_VAR([PROVE], [Test::Harness runner])
+
+CFLAGS="-Wall -Werror"
+
 # Checks for programs.
 AC_PROG_CC
+AC_PATH_PROG([PROVE], [prove])
 
 # Checks for libraries.
 
