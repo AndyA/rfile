@@ -284,7 +284,7 @@ rfile_readv( rfile * rf, const struct iovec * iov, int iovcnt ) {
   rfile__iov_state st;
   struct iovec iv[256];
   int ivc;
-  size_t got;
+  size_t got = 0;
 
   if ( rf->fptr > rf->ext ) {
     errno = EINVAL;
@@ -341,7 +341,8 @@ rfile_readv( rfile * rf, const struct iovec * iov, int iovcnt ) {
 
     if ( st.pos == st.iovcnt || rf->fptr == rf->ext )
       return got;
-    if ( rfile__setpos( rf, next ) < 0 )
+
+    if ( rfile__setpos( rf, rf->c_pos + rf->c_hdr.length ) < 0 )
       return -1;
   }
 
@@ -435,7 +436,7 @@ test_write( void ) {
 int
 main( void ) {
   test_write(  );
-  test_read();
+  test_read(  );
   return 0;
 }
 
