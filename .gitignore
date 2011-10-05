@@ -15,4 +15,5 @@ depcomp
 install-sh
 missing
 src/rfile
+tests/basic
 stamp-h1
