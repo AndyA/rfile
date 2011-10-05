@@ -1,5 +1,6 @@
 AC_PREREQ([2.67])
 AC_INIT([rfile], [0.0.1], [andy@hexten.net])
+LT_INIT([disable-static])
 AM_INIT_AUTOMAKE
 AC_CONFIG_FILES([Makefile src/Makefile tests/Makefile])
 AC_CONFIG_SRCDIR([src/rfile.c])
