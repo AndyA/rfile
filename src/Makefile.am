@@ -6,3 +6,4 @@ include_HEADERS=rfile.h
 bin_PROGRAMS=rfcat
 rfcat_SOURCES=rfcat.c
 rfcat_LDADD=librfile.la
+
