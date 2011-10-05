@@ -1,7 +1,7 @@
 AC_PREREQ([2.68])
 AC_INIT([rfile], [0.1], [andy@hexten.net])
 AM_INIT_AUTOMAKE
-AC_CONFIG_FILES([Makefile src/Makefile])
+AC_CONFIG_FILES([Makefile src/Makefile tests/Makefile])
 AC_CONFIG_SRCDIR([src/rfile.c])
 AC_CONFIG_HEADERS([config.h])
 
