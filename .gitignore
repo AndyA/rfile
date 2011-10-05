@@ -19,6 +19,7 @@ config.status
 config.sub
 configure
 depcomp
+foo*
 install-sh
 libtool
 ltmain.sh
