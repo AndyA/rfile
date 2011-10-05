@@ -10,5 +10,3 @@ pkgconfig_DATA = rfile.pc
 
 test: check
 
-check: all
-	$(PROVE) -e '' ./tests/basic
