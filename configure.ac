@@ -1,5 +1,5 @@
 AC_PREREQ([2.67])
-AC_INIT([rfile], [0.1], [andy@hexten.net])
+AC_INIT([rfile], [0.0.1], [andy@hexten.net])
 AM_INIT_AUTOMAKE
 AC_CONFIG_FILES([Makefile src/Makefile tests/Makefile])
 AC_CONFIG_SRCDIR([src/rfile.c])
@@ -13,6 +13,7 @@ CFLAGS="-Wall -Werror"
 # Checks for programs.
 AC_PROG_CC
 AC_PROG_LIBTOOL
+AC_PROG_SED
 AC_PATH_PROG([PROVE], [prove])
 
 # Checks for libraries.
