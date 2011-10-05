@@ -23,6 +23,7 @@ install-sh
 libtool
 ltmain.sh
 missing
+src/rfcat
 src/rfile
 stamp-h1
 tags
