@@ -1,2 +1,4 @@
-bin_PROGRAMS=rfile
-rfile_SOURCES=rfile.c
+lib_LTLIBRARIES=librfile.la
+librfile_la_SOURCES=rfile.c
+include_HEADERS=rfile.h
+
