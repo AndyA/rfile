@@ -8,6 +8,7 @@
 Makefile
 Makefile.in
 Session.vim
+TAGS
 aclocal.m4
 autom4te.cache/
 config.guess
@@ -24,4 +25,5 @@ ltmain.sh
 missing
 src/rfile
 stamp-h1
+tags
 tests/basic
