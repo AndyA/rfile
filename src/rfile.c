@@ -1,12 +1,8 @@
-/* src/rfile.c */
+/* rfile.c */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/uio.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <errno.h>
 #include "rfile.h"
 
 static int
@@ -395,47 +391,6 @@ fail:
 ssize_t
 rfile_writeref( rfile * rf, const char *url, const rfile_range * range,
                 size_t count ) {
-  return 0;
-}
-
-static void
-test_read( void ) {
-  rfile *rf;
-  char buf[128];
-
-  rf = rfile_open( "foo.rfile", O_RDONLY );
-  for ( ;; ) {
-    ssize_t got = rfile_read( rf, buf, sizeof( buf ) );
-    if ( got == 0 )
-      break;
-    if ( got < 0 ) {
-      fprintf( stderr, "Read error: %d\n", errno );
-      exit( 1 );
-    }
-    fwrite( buf, 1, got, stdout );
-  }
-
-  rfile_close( rf );
-}
-
-static void
-test_write( void ) {
-  const char *msg = "Hello, World\n";
-  rfile *rf;
-  int i;
-
-  rf = rfile_create( "foo.rfile", 0666 );
-  for ( i = 0; i < 10; i++ ) {
-    rfile_write( rf, msg, strlen( msg ) );
-  }
-
-  rfile_close( rf );
-}
-
-int
-main( void ) {
-  test_write(  );
-  test_read(  );
   return 0;
 }
 

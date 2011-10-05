@@ -3,6 +3,12 @@
 #ifndef __RFILE_H
 #define __RFILE_H
 
+#include <sys/uio.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <errno.h>
+
 #include "../config.h"
 
 #define rfile_FOURCC(s0, s1, s2, s3) \
