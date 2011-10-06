@@ -380,7 +380,11 @@ rfile_writev( rfile * rf, const struct iovec * iov, int iovcnt ) {
   off_t pos, sz;
   ssize_t bc;
 
-  /* TODO check seek pos */
+  if ( rf->fptr != rf->ext ) {
+    errno = EINVAL;
+    return -1;
+  }
+
   sz = rfile__iov_len( iov, iovcnt );
   if ( sz == 0 )
     return 0;
@@ -402,6 +406,7 @@ rfile_writev( rfile * rf, const struct iovec * iov, int iovcnt ) {
     goto fail;
 
   rf->ext += bc;
+  rf->fptr += bc;
 
   return bc;
 

@@ -3,63 +3,65 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #include "tap.h"
+#include "testutil.h"
 #include "rfile.h"
 
 static void
-_check( const char *file, int line, int rc ) {
-  if ( rc )
-    die( "%s, %d: error: %s", file, line, strerror( errno ) );
-}
+test_001( void ) {
+  char data[11327];
+  int sn;
+  int step[] = {
+    1, 2, 3, 4, 8, 9, 12, 16, 32, 36, 64, 100, 128, 129, 200, 256, 300,
+    512, 1000, 1024, 1111, 1234, 2000, 2048, 3000, 4000, 4096, 8192, 10000,
+    11300, 11320, 11327, -1
+  };
 
-#define check( rc ) \
-  _check(__FILE__, __LINE__, rc)
+  rand_fill( data, sizeof( data ), 0 );
 
-static void
-test_read( void ) {
-  rfile *rf;
-  char buf[128];
+  for ( sn = 0; step[sn] > 0; sn++ ) {
+    rfile *rf;
+    char *tf = NULL;
+    struct stat st;
+    unsigned pos;
+    size_t written = 0;
 
-  rf = rfile_open( "foo.rfile", O_RDONLY );
-  if ( !rf )
-    check( -1 );
-  for ( ;; ) {
-    ssize_t got = rfile_read( rf, buf, sizeof( buf ) );
-    if ( got < 0 )
-      check( -1 );
-    if ( got == 0 )
-      break;
-    fwrite( buf, 1, got, stdout );
+    rf = tu_create( &tf );
+    check( rfile_fstat( rf, &st ) );
+    is( st.st_size, 0, "step = %d, new file: length == 0", step[sn] );
+    is( rfile_lseek( rf, 0, SEEK_CUR ), 0,
+        "step = %d, new file: fptr == 0", step[sn] );
+
+    for ( pos = 0; pos < sizeof( data ); pos += step[sn] ) {
+      size_t done, avail = sizeof( data ) - pos;
+      if ( avail > step[sn] )
+        avail = step[sn];
+      done = rfile_write( rf, data + pos, avail );
+      written += done;
+    }
+
+    is( written, sizeof( data ),
+        "step = %d, rfile_write returned %d", step[sn], sizeof( data ) );
+
+    check( rfile_fstat( rf, &st ) );
+    is( st.st_size, sizeof( data ),
+        "step = %d, after write: %ld == %d bytes", step[sn],
+        ( long ) st.st_size, sizeof( data ) );
+    is( rfile_lseek( rf, 0, SEEK_CUR ), sizeof( data ),
+        "step = %d, after write: fptr == %d", step[sn], sizeof( data ) );
+    check( rfile_close( rf ) );
+    check( unlink( tf ) );
+    free( tf );
   }
-
-  check( rfile_close( rf ) );
-}
-
-static void
-test_write( void ) {
-  const char *msg = "Hello, World\n";
-  rfile *rf;
-  int i;
-
-  rf = rfile_create( "foo.rfile", 0666 );
-  if ( !rf )
-    check( -1 );
-  for ( i = 0; i < 10; i++ ) {
-    if ( rfile_write( rf, msg, strlen( msg ) ) < 0 )
-      check( -1 );
-  }
-
-  check( rfile_close( rf ) );
 }
 
 int
 main( void ) {
-  test_write(  );
-  test_read(  );
-  plan( 1 );
-  ok( 1, "That's fine" );
+  plan( 32 * 5 );
+  test_001(  );
   return 0;
 }
 

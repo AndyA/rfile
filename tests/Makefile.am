@@ -3,7 +3,7 @@ noinst_PROGRAMS=basic
 noinst_LIBRARIES=libtest.a
 basic_SOURCES=basic.c
 basic_LDADD=libtest.a ../src/librfile.la
-libtest_a_SOURCES=tap.c
+libtest_a_SOURCES=tap.c testutil.c
 AM_CFLAGS+=-I../src
 
 check: all
