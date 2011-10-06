@@ -12,7 +12,6 @@ AC_ARG_VAR([PROVE], [Test::Harness runner])
 AM_CFLAGS="-Wall -Werror"
 AC_SUBST(AM_CFLAGS)
 
-
 # Checks for programs.
 AC_PROG_CC
 AC_PROG_LIBTOOL
@@ -24,6 +23,8 @@ AC_PATH_PROG([PROVE], [prove])
 # Checks for header files.
 
 # Checks for typedefs, structures, and compiler characteristics.
+AC_TYPE_UINT32_T
+AC_TYPE_UINT64_T
 
 # Checks for library functions.
 

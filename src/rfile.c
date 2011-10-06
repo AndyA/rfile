@@ -3,18 +3,40 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "bits.h"
 #include "rfile.h"
 
 static int
 rfile__ghdr( rfile * rf, rfile_chunk_header * hdr ) {
-  ssize_t sz = read( rf->fd, hdr, rfile_HEADER_SIZE );
-  return sz < rfile_HEADER_SIZE ? -1 : 0;
+  rfile_bits b;
+  unsigned char buf[rfile_HEADER_SIZE];
+  return rfile_bits_buf( &b, buf, sizeof( buf ) )
+      || rfile_bits_read( &b, rf->fd, rfile_HEADER_SIZE )
+      || rfile_bits_rewind( &b )
+      || rfile_bits_get32( &b, &hdr->sig )
+      || rfile_bits_get32( &b, &hdr->version )
+      || rfile_bits_get32( &b, &hdr->type )
+      || rfile_bits_get64( &b, &hdr->length )
+      || rfile_bits_get64( &b, &hdr->pos.start )
+      || rfile_bits_get64( &b, &hdr->pos.end )
+      ? -1 : 0;
 }
 
 static int
 rfile__phdr( rfile * rf, const rfile_chunk_header * hdr ) {
-  ssize_t sz = write( rf->fd, hdr, rfile_HEADER_SIZE );
-  return sz < rfile_HEADER_SIZE ? -1 : 0;
+  rfile_bits b;
+  unsigned char buf[rfile_HEADER_SIZE];
+  return rfile_bits_buf( &b, buf, sizeof( buf ) )
+      || rfile_bits_put32( &b, hdr->sig )
+      || rfile_bits_put32( &b, hdr->version )
+      || rfile_bits_put32( &b, hdr->type )
+      || rfile_bits_put64( &b, hdr->length )
+      || rfile_bits_put64( &b, hdr->pos.start )
+      || rfile_bits_put64( &b, hdr->pos.end )
+      || rfile_bits_rewind( &b )
+      || rfile_bits_write( &b, rf->fd, rfile_HEADER_SIZE )
+      ? -1 : 0;
 }
 
 static void

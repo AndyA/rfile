@@ -3,13 +3,21 @@
 #ifndef __RFILE_H
 #define __RFILE_H
 
+#include "../config.h"
+
 #include <sys/uio.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
 
-#include "../config.h"
+#ifdef HAVE_INTTYPES_H
+#include <inttypes.h>
+#endif
+
+#ifdef HAVE_STDINT_H
+#include <stdint.h>
+#endif
 
 #define rfile_FOURCC(s0, s1, s2, s3) \
   ( (unsigned int) \
@@ -26,19 +34,20 @@
 #define rfile_REF_OUT  rfile_FOURCC('r', 'e', 'f', ' ')
 
 typedef struct {
-  off_t start;
-  off_t end;
+  uint64_t start;
+  uint64_t end;
 } rfile_range;
 
 typedef struct {
-  unsigned long sig;
-  unsigned long version;
-  unsigned long type;
-  off_t length;
+  uint32_t sig;
+  uint32_t version;
+  uint32_t type;
+  uint64_t length;
   rfile_range pos;
 } rfile_chunk_header;
 
-#define rfile_HEADER_SIZE sizeof(rfile_chunk_header)
+/* on-disk size - there must be a better way... */
+#define rfile_HEADER_SIZE (4 * 3 + 8 * 3)
 
 typedef struct {
   int fd;

@@ -3,9 +3,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 #include "tap.h"
 #include "rfile.h"
+
+static void
+_check( const char *file, int line, int rc ) {
+  if ( rc )
+    die( "%s, %d: error: %s", file, line, strerror( errno ) );
+}
+
+#define check( rc ) \
+  _check(__FILE__, __LINE__, rc)
 
 static void
 test_read( void ) {
@@ -13,18 +23,18 @@ test_read( void ) {
   char buf[128];
 
   rf = rfile_open( "foo.rfile", O_RDONLY );
+  if ( !rf )
+    check( -1 );
   for ( ;; ) {
     ssize_t got = rfile_read( rf, buf, sizeof( buf ) );
+    if ( got < 0 )
+      check( -1 );
     if ( got == 0 )
       break;
-    if ( got < 0 ) {
-      fprintf( stderr, "Read error: %d\n", errno );
-      exit( 1 );
-    }
     fwrite( buf, 1, got, stdout );
   }
 
-  rfile_close( rf );
+  check( rfile_close( rf ) );
 }
 
 static void
@@ -34,11 +44,14 @@ test_write( void ) {
   int i;
 
   rf = rfile_create( "foo.rfile", 0666 );
+  if ( !rf )
+    check( -1 );
   for ( i = 0; i < 10; i++ ) {
-    rfile_write( rf, msg, strlen( msg ) );
+    if ( rfile_write( rf, msg, strlen( msg ) ) < 0 )
+      check( -1 );
   }
 
-  rfile_close( rf );
+  check( rfile_close( rf ) );
 }
 
 int
