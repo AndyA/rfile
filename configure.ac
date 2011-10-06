@@ -9,7 +9,9 @@ AC_CONFIG_MACRO_DIR([m4])
 
 AC_ARG_VAR([PROVE], [Test::Harness runner])
 
-CFLAGS="-Wall -Werror"
+AM_CFLAGS="-Wall -Werror"
+AC_SUBST(AM_CFLAGS)
+
 
 # Checks for programs.
 AC_PROG_CC

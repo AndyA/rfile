@@ -5,7 +5,7 @@
 #include <string.h>
 
 #include "tap.h"
-#include "../src/rfile.h"
+#include "rfile.h"
 
 static void
 test_read( void ) {
