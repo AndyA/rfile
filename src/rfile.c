@@ -318,8 +318,8 @@ rfile_readv( rfile * rf, const struct iovec * iov, int iovcnt ) {
   rfile__init_iov_state( &st, iov, iovcnt );
 
   for ( ;; ) {
-    size_t avail;
-    int fd;
+    size_t avail = 0;
+    int fd = 0;
 
     switch ( rf->c_hdr.type ) {
     case rfile_DATA_IN:
