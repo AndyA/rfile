@@ -25,6 +25,7 @@ test_001( void ) {
   for ( sn = 0; step[sn] > 0; sn++ ) {
     char *tf = NULL;
 
+    /* write file */
     {
       rfile *rf;
       struct stat st;
@@ -57,6 +58,7 @@ test_001( void ) {
       check( rfile_close( rf ) );
     }
 
+    /* read file */
     {
       rfile *rf;
       int sn2;
