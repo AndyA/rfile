@@ -127,6 +127,10 @@ rfile__seek( rfile * rf, off_t pos ) {
   if ( rf->ext == 0 )
     return 0;
 
+  /* seek to start is easy, common */
+  if ( pos == 0 )
+    return rfile__setpos( rf, 0 );
+
   /* Load first chunk header */
   if ( rf->c_pos == -1 ) {
     if ( pos < rf->ext / 2 ) {
