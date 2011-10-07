@@ -96,10 +96,49 @@ test_001( void ) {
   }
 }
 
+static void
+test_002( void ) {
+  char *tf = NULL;
+  char data[13271];
+
+  rand_fill( data, sizeof( data ), 0 );
+
+  /* write file */
+  {
+    rfile *rf;
+
+    rf = tu_create( &tf );
+    if ( rfile_write( rf, data, sizeof( data ) ) < 0 )
+      check( -1 );
+    check( rfile_close( rf ) );
+  }
+
+  {
+    rfile_range rl[20];
+    tu_mk_range_list( rl, countof( rl ), sizeof( data ), 0 );
+    tu_shuffle( rl, countof( rl ), sizeof( rl[0] ), 0 );
+
+#if 0
+    {
+      int i;
+      for ( i = 0; i < countof( rl ); i++ ) {
+        printf( "%3d: %8lu - %8lu\n", i, ( unsigned long ) rl[i].start,
+                ( unsigned long ) rl[i].end );
+      }
+    }
+#endif
+
+  }
+
+  check( unlink( tf ) );
+  free( tf );
+}
+
 int
 main( void ) {
   plan( 3232 );
   test_001(  );
+  test_002(  );
   return 0;
 }
 
