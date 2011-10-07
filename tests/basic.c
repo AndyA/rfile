@@ -16,43 +16,79 @@ test_001( void ) {
   int sn;
   int step[] = {
     1, 2, 3, 4, 8, 9, 12, 16, 32, 36, 64, 100, 128, 129, 200, 256, 300,
-    512, 1000, 1024, 1111, 1234, 2000, 2048, 3000, 4000, 4096, 8192, 10000,
-    11300, 11320, 11327, -1
+    512, 1000, 1024, 1111, 1234, 2000, 2048, 3000, 4000, 4096, 8192,
+    10000, 11300, 11320, 11327, -1
   };
 
   rand_fill( data, sizeof( data ), 0 );
 
   for ( sn = 0; step[sn] > 0; sn++ ) {
-    rfile *rf;
     char *tf = NULL;
-    struct stat st;
-    unsigned pos;
-    size_t written = 0;
 
-    rf = tu_create( &tf );
-    check( rfile_fstat( rf, &st ) );
-    is( st.st_size, 0, "step = %d, new file: length == 0", step[sn] );
-    is( rfile_lseek( rf, 0, SEEK_CUR ), 0,
-        "step = %d, new file: fptr == 0", step[sn] );
+    {
+      rfile *rf;
+      struct stat st;
+      unsigned pos;
+      size_t written = 0;
 
-    for ( pos = 0; pos < sizeof( data ); pos += step[sn] ) {
-      size_t done, avail = sizeof( data ) - pos;
-      if ( avail > step[sn] )
-        avail = step[sn];
-      done = rfile_write( rf, data + pos, avail );
-      written += done;
+      rf = tu_create( &tf );
+      check( rfile_fstat( rf, &st ) );
+      is( st.st_size, 0, "step = %d, new file: length == 0", step[sn] );
+      is( rfile_lseek( rf, 0, SEEK_CUR ), 0,
+          "step = %d, new file: fptr == 0", step[sn] );
+
+      for ( pos = 0; pos < sizeof( data ); pos += step[sn] ) {
+        size_t done, avail = sizeof( data ) - pos;
+        if ( avail > step[sn] )
+          avail = step[sn];
+        done = rfile_write( rf, data + pos, avail );
+        written += done;
+      }
+
+      is( written, sizeof( data ),
+          "step = %d, rfile_write returned %d", step[sn], sizeof( data ) );
+
+      check( rfile_fstat( rf, &st ) );
+      is( st.st_size, sizeof( data ),
+          "step = %d, after write: %ld == %d bytes", step[sn],
+          ( long ) st.st_size, sizeof( data ) );
+      is( rfile_lseek( rf, 0, SEEK_CUR ), sizeof( data ),
+          "step = %d, after write: fptr == %d", step[sn], sizeof( data ) );
+      check( rfile_close( rf ) );
     }
 
-    is( written, sizeof( data ),
-        "step = %d, rfile_write returned %d", step[sn], sizeof( data ) );
+    {
+      rfile *rf;
+      int sn2;
 
-    check( rfile_fstat( rf, &st ) );
-    is( st.st_size, sizeof( data ),
-        "step = %d, after write: %ld == %d bytes", step[sn],
-        ( long ) st.st_size, sizeof( data ) );
-    is( rfile_lseek( rf, 0, SEEK_CUR ), sizeof( data ),
-        "step = %d, after write: fptr == %d", step[sn], sizeof( data ) );
-    check( rfile_close( rf ) );
+      if ( NULL == ( rf = rfile_open( tf, O_RDONLY ) ) )
+        check( -1 );
+
+      for ( sn2 = 0; step[sn2] > 0; sn2++ ) {
+        unsigned pos;
+        size_t fetched = 0;
+        unsigned char got[sizeof( data )];
+
+        is( rfile_lseek( rf, 0, SEEK_SET ), 0, "seek to start" );
+
+        for ( pos = 0; pos < sizeof( data ); pos += step[sn2] ) {
+          size_t done, avail = sizeof( data ) - pos;
+          if ( avail > step[sn2] )
+            avail = step[sn2];
+          done = rfile_read( rf, got + pos, avail );
+          fetched += done;
+        }
+
+        is( fetched, sizeof( data ),
+            "step = %d, rfile_read returned %d", step[sn],
+            sizeof( data ) );
+
+        ok( !memcmp( data, got, sizeof( data ) ), "data read OK" );
+      }
+
+      check( rfile_close( rf ) );
+    }
+
     check( unlink( tf ) );
     free( tf );
   }
@@ -60,7 +96,7 @@ test_001( void ) {
 
 int
 main( void ) {
-  plan( 32 * 5 );
+  plan( 3232 );
   test_001(  );
   return 0;
 }
