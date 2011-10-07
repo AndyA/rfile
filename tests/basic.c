@@ -73,6 +73,7 @@ test_001( void ) {
 
         is( rfile_lseek( rf, 0, SEEK_SET ), 0, "seek to start" );
 
+        memset( got, 0, sizeof( got ) );
         for ( pos = 0; pos < sizeof( data ); pos += step[sn2] ) {
           size_t done, avail = sizeof( data ) - pos;
           if ( avail > step[sn2] )
@@ -114,20 +115,35 @@ test_002( void ) {
   }
 
   {
-    rfile_range rl[20];
-    tu_mk_range_list( rl, countof( rl ), sizeof( data ), 0 );
-    tu_shuffle( rl, countof( rl ), sizeof( rl[0] ), 0 );
+    rfile_range rl[2000];
+    char got[sizeof( data )];
+    unsigned pc, rlpos;
 
-#if 0
-    {
-      int i;
-      for ( i = 0; i < countof( rl ); i++ ) {
-        printf( "%3d: %8lu - %8lu\n", i, ( unsigned long ) rl[i].start,
-                ( unsigned long ) rl[i].end );
+    for ( pc = 10; pc <= 100; pc += 10 ) {
+      size_t slice = countof( rl ) * pc / 100;
+      rfile *rf;
+
+      tu_mk_range_list( rl, slice, sizeof( data ), 0 );
+      tu_shuffle( rl, slice, sizeof( rl[0] ), 0 );
+
+      if ( NULL == ( rf = rfile_open( tf, O_RDONLY ) ) )
+        check( -1 );
+
+      memset( got, 0, sizeof( got ) );
+      for ( rlpos = 0; rlpos < slice; rlpos++ ) {
+        size_t want = rl[rlpos].end - rl[rlpos].start;
+        /* diag( "%4u: %7lu - %7lu", rlpos, rl[rlpos].start, rl[rlpos].end ); */
+        if ( rfile_lseek( rf, rl[rlpos].start, SEEK_SET ) !=
+             rl[rlpos].start )
+          check( -1 );
+        if ( rfile_read( rf, got + rl[rlpos].start, want ) != want )
+          check( -1 );
       }
-    }
-#endif
 
+      check( rfile_close( rf ) );
+      ok( !memcmp( data, got, sizeof( data ) ), "%lu chunks: data read OK",
+          ( unsigned long ) slice );
+    }
   }
 
   check( unlink( tf ) );
@@ -136,7 +152,7 @@ test_002( void ) {
 
 int
 main( void ) {
-  plan( 3232 );
+  plan( 3242 );
   test_001(  );
   test_002(  );
   return 0;
