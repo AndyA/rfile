@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "bits.h"
+#include "filename.h"
 #include "rfile.h"
 
 #include "rfile_struct.h"
@@ -82,11 +83,25 @@ rfile__alloc( void **buf, size_t sz ) {
 }
 
 static int
-rfile__new( rfile ** rf ) {
-  if ( rfile__alloc( ( void ** ) rf, sizeof( rfile ) ) < 0 )
+rfile__strdup( char **dest, const char *src ) {
+  size_t len = strlen( src ) + 1;
+  if ( rfile__alloc( ( void ** ) dest, len ) )
     return -1;
+  memcpy( *dest, src, len );
+  return 0;
+}
+
+static int
+rfile__new( rfile ** rf, const char *name ) {
+  if ( rfile__alloc( ( void ** ) rf, sizeof( rfile ) ) )
+    return -1;
+  if ( !( ( *rf )->fname = rfile_fn_rel2abs( name, NULL ) ) )
+    goto fail;
   ( *rf )->c_pos = -1;
   return 0;
+fail:
+  rfile_close( *rf );
+  return -1;
 }
 
 static off_t
@@ -181,7 +196,7 @@ rfile *
 rfile_create( const char *name, mode_t mode ) {
   rfile *rf;
 
-  if ( rfile__new( &rf ) < 0 )
+  if ( rfile__new( &rf, name ) < 0 )
     return NULL;
 
   if ( rf->fd =
@@ -202,7 +217,7 @@ rfile *
 rfile_open( const char *name, int oflag ) {
   rfile *rf;
 
-  if ( rfile__new( &rf ) < 0 )
+  if ( rfile__new( &rf, name ) < 0 )
     return NULL;
 
   if ( rf->fd = open( name, oflag ), rf->fd < 0 )
@@ -223,6 +238,7 @@ rfile_close( rfile * rf ) {
   if ( rf ) {
     if ( rf->fd )
       close( rf->fd );
+    free( rf->fname );
     free( rf );
   }
   return 0;
@@ -297,6 +313,7 @@ static int
 rfile__load_ref( rfile * rf, rfile_ref * ref ) {
   rfile_bits b;
   uint32_t count, i;
+  char *rname = NULL;
   size_t size = rf->c_hdr.length - rfile_chunk_header_SIZE * 2;
 
   rfile__destroy_ref( ref );
@@ -309,31 +326,28 @@ rfile__load_ref( rfile * rf, rfile_ref * ref ) {
 
   if ( rfile_bits_read( &b, rf->fd, size )
        || rfile_bits_rewind( &b )
-       || rfile_bits_get32( &b, &count ) )
+       || rfile_bits_get32( &b, &count )
+       || rfile__strdup( &ref->ref, rfile_bits_gets( &b ) )
+       || rfile__alloc( ( void ** ) &ref->range,
+                        sizeof( rfile_range ) * count ) )
     goto fail;
-
-  if ( NULL == ( ref->ref = strdup( rfile_bits_gets( &b ) ) ) ) {
-    errno = ENOMEM;
-    goto fail;
-  }
-
-  if ( NULL == ( ref->range = malloc( sizeof( rfile_range ) * count ) ) ) {
-    errno = ENOMEM;
-    goto fail;
-  }
 
   for ( i = 0; i < count; i++ ) {
     if ( rfile_range_guzzle( &b, &ref->range[i] ) )
       goto fail;
   }
 
-  if ( ref->fd = open( ref->ref, O_RDONLY ), ref->fd < 0 )
+  rname = rfile_fn_rel2abs( ref->ref, rf->fname );
+
+  if ( ref->fd = open( rname, O_RDONLY ), ref->fd < 0 )
     goto fail;
 
+  free( rname );
   rfile_bits_destroy( &b );
   return 0;
 
 fail:
+  free( rname );
   rfile_bits_destroy( &b );
   rfile__destroy_ref( ref );
   return -1;
