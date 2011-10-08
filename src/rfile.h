@@ -52,6 +52,7 @@ typedef struct {
   char *ref;
   rfile_range *range;
   size_t count;
+  int fd;
 } rfile_ref;
 
 typedef struct {
