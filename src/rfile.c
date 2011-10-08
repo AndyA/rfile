@@ -49,6 +49,17 @@ rfile__extent( rfile * rf, off_t * extp ) {
   return 0;
 }
 
+static void
+rfile__destroy_ref( rfile_ref * ref ) {
+  if ( ref ) {
+    free( ref->ref );
+    free( ref->range );
+    ref->ref = NULL;
+    ref->range = NULL;
+    ref->count = 0;
+  }
+}
+
 static int
 rfile__alloc( void **buf, size_t sz ) {
   if ( *buf = malloc( sz ), !*buf ) {
@@ -272,6 +283,64 @@ rfile__fill_iov( rfile__iov_state * st, struct iovec *iov, int iovsz,
   return iovcnt;
 }
 
+static int
+rfile__load_ref( rfile * rf, rfile_ref * ref ) {
+  rfile_bits b;
+  uint32_t count, i;
+  size_t size = rf->c_hdr.length - rfile_chunk_header_SIZE * 2;
+
+  ref->ref = NULL;
+  ref->range = NULL;
+  ref->count = 0;
+
+  if ( lseek( rf->fd, rf->c_pos + rfile_chunk_header_SIZE, SEEK_SET ) < 0 )
+    return -1;
+
+  if ( rfile_bits_init( &b, size ) )
+    return -1;
+
+  if ( rfile_bits_read( &b, rf->fd, size )
+       || rfile_bits_rewind( &b )
+       || rfile_bits_get32( &b, &count ) )
+    goto fail;
+
+  if ( NULL == ( ref->ref = strdup( rfile_bits_gets( &b ) ) ) ) {
+    errno = ENOMEM;
+    goto fail;
+  }
+
+  if ( NULL == ( ref->range = malloc( sizeof( rfile_range ) * count ) ) ) {
+    errno = ENOMEM;
+    goto fail;
+  }
+
+  for ( i = 0; i < count; i++ ) {
+    if ( rfile_range_guzzle( &b, &ref->range[i] ) )
+      goto fail;
+  }
+
+  rfile_bits_destroy( &b );
+  return 0;
+
+fail:
+  rfile_bits_destroy( &b );
+  rfile__destroy_ref( ref );
+  return -1;
+}
+
+static int
+rfile__range_find( const rfile_ref * ref, off_t pos, off_t * start ) {
+  int rp;
+  *start = 0;
+  for ( rp = 0; rp < ref->count; rp++ ) {
+    size_t span = ref->range[rp].end - ref->range[rp].end;
+    if ( pos < *start + span )
+      return rp;
+    *start += span;
+  }
+
+}
+
 ssize_t
 rfile_readv( rfile * rf, const struct iovec * iov, int iovcnt ) {
   rfile__iov_state st;
@@ -321,6 +390,8 @@ rfile_readv( rfile * rf, const struct iovec * iov, int iovcnt ) {
           rfile__fill_iov( &st, iv, sizeof( iv ) / sizeof( iv[0] ),
                            &avail );
       cnt = readv( fd, iv, ivc );
+      if ( fd != rf->fd )
+        close( fd );
       if ( cnt < 0 )
         return cnt;
       if ( cnt != ov - avail ) {
@@ -391,18 +462,17 @@ fail:
 }
 
 static ssize_t
-rfile__ref2bits( rfile_bits * b, const char *ref,
-                 const rfile_range * range, size_t count ) {
-  size_t expsz = 0, size = 4 + rfile_ALIGNUP( strlen( ref ) + 1 ) +
-      rfile_range_SIZE * count;
+rfile__ref2bits( rfile_bits * b, const rfile_ref * ref ) {
+  size_t expsz = 0, size = 4 + rfile_ALIGNUP( strlen( ref->ref ) + 1 ) +
+      rfile_range_SIZE * ref->count;
   unsigned i;
 
-  if ( rfile_bits_init( b, size ) ||
-       rfile_bits_put32( b, count ) || rfile_bits_puts( b, ref ) )
+  if ( rfile_bits_init( b, size ) || rfile_bits_put32( b, ref->count )
+       || rfile_bits_puts( b, ref->ref ) )
     return -1;
-  for ( i = 0; i < count; i++ ) {
-    expsz += range[i].end - range[i].start;
-    if ( rfile_range_piddle( b, &range[i] ) )
+  for ( i = 0; i < ref->count; i++ ) {
+    expsz += ref->range[i].end - ref->range[i].start;
+    if ( rfile_range_piddle( b, &ref->range[i] ) )
       return -1;
   }
 
@@ -410,10 +480,9 @@ rfile__ref2bits( rfile_bits * b, const char *ref,
 }
 
 ssize_t
-rfile_writeref( rfile * rf, const char *ref, const rfile_range * range,
-                size_t count ) {
+rfile_writeref( rfile * rf, const rfile_ref * ref ) {
   rfile_chunk_header hdr;
-  ssize_t bc, expsz;
+  ssize_t expsz;
   off_t pos;
   rfile_bits b;
 
@@ -422,7 +491,7 @@ rfile_writeref( rfile * rf, const char *ref, const rfile_range * range,
     return -1;
   }
 
-  if ( expsz = rfile__ref2bits( &b, ref, range, count ), expsz < 0 )
+  if ( expsz = rfile__ref2bits( &b, ref ), expsz < 0 )
     return -1;
 
   rfile__init_hdr( &hdr, rfile_REF_IN,
@@ -431,13 +500,10 @@ rfile_writeref( rfile * rf, const char *ref, const rfile_range * range,
 
   pos = lseek( rf->fd, 0, SEEK_END );
 
-  if ( rfile_chunk_header_writer( rf, &hdr ) )
-    goto fail;
-
-  if ( bc = write( rf->fd, b.buf, b.used ), bc != b.used )
-    goto fail;
-
-  if ( rfile_chunk_header_writer( rf, &hdr ) < 0 )
+  if ( rfile_chunk_header_writer( rf, &hdr ) ||
+       rfile_bits_rewind( &b ) ||
+       rfile_bits_write( &b, rf->fd, b.used ) ||
+       rfile_chunk_header_writer( rf, &hdr ) )
     goto fail;
 
   rfile_bits_destroy( &b );

@@ -49,6 +49,12 @@ typedef struct {
 } rfile_chunk_header;
 
 typedef struct {
+  char *ref;
+  rfile_range *range;
+  size_t count;
+} rfile_ref;
+
+typedef struct {
   int fd;
   off_t ext;
   off_t fptr;                   /* file offset */
@@ -68,8 +74,7 @@ ssize_t rfile_read( rfile * rf, void *buf, size_t nbyte );
 ssize_t rfile_readv( rfile * rf, const struct iovec *iov, int iovcnt );
 ssize_t rfile_write( rfile * rf, const void *buf, size_t nbyte );
 ssize_t rfile_writev( rfile * rf, const struct iovec *iov, int iovcnt );
-ssize_t rfile_writeref( rfile * rf, const char *ref,
-                        const rfile_range * range, size_t count );
+ssize_t rfile_writeref( rfile * rf, const rfile_ref *ref);
 
 #endif
 
