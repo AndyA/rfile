@@ -7,31 +7,11 @@
 #include "bits.h"
 #include "rfile.h"
 
-static int
-rfile__ghdr( rfile * rf, rfile_chunk_header * hdr ) {
-  rfile_bits b;
-  unsigned char buf[rfile_chunk_header_SIZE];
-  return rfile_bits_buf( &b, buf, sizeof( buf ) )
-      || rfile_bits_read( &b, rf->fd, rfile_chunk_header_SIZE )
-      || rfile_bits_rewind( &b )
-      || rfile_bits_guzzle( &b, rfile_chunk_header_SPEC, &hdr->sig,
-                            &hdr->version, &hdr->type, &hdr->length,
-                            &hdr->pos.start, &hdr->pos.end )
-      ? -1 : 0;
-}
+rfile_bits_READER( rfile__ghdr, rfile_chunk_header_SPEC,
+                   rfile_chunk_header_MPTR, rfile_chunk_header_SIZE );
 
-static int
-rfile__phdr( rfile * rf, const rfile_chunk_header * hdr ) {
-  rfile_bits b;
-  unsigned char buf[rfile_chunk_header_SIZE];
-  return rfile_bits_buf( &b, buf, sizeof( buf ) )
-      || rfile_bits_piddle( &b, rfile_chunk_header_SPEC, hdr->sig,
-                            hdr->version, hdr->type, hdr->length,
-                            hdr->pos.start, hdr->pos.end )
-      || rfile_bits_rewind( &b )
-      || rfile_bits_write( &b, rf->fd, rfile_chunk_header_SIZE )
-      ? -1 : 0;
-}
+rfile_bits_WRITER( rfile__phdr, rfile_chunk_header_SPEC,
+                   rfile_chunk_header_MEMB, rfile_chunk_header_SIZE );
 
 static void
 rfile__init_hdr( rfile_chunk_header * hdr,
