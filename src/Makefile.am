@@ -7,3 +7,7 @@ bin_PROGRAMS=rfcat
 rfcat_SOURCES=rfcat.c
 rfcat_LDADD=librfile.la
 
+rfile_struct.c rfile_struct.h: rfile.h
+	$(PERL) ../tools/serializator.pl -c rfile_struct.c -h rfile_struct.h rfile.h
+
+rfile.c: rfile_struct.c rfile_struct.h

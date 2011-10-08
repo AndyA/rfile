@@ -37,7 +37,6 @@ sub serializator {
 
   while ( <$fh> ) {
     chomp( my $line = $_ );
-    print $hh "$line\n";
     if ( $ser ) {
       $line =~ s{/\*.+?\*/}{}g;
       $line =~ s{^\s+}{}g;

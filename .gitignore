@@ -28,6 +28,7 @@ missing
 rfile.pc
 src/rfcat
 src/rfile
+src/rfile_struct.*
 stamp-h1
 tags
 tests/basic

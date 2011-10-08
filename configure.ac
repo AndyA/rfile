@@ -7,7 +7,7 @@ AC_CONFIG_SRCDIR([src/rfile.c])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])
 
-AC_ARG_VAR([PROVE], [Test::Harness runner])
+AC_ARG_VAR([PERL], [PROVE], [Test::Harness runner])
 
 AM_CFLAGS="-Wall -Werror"
 AC_SUBST(AM_CFLAGS)
@@ -16,6 +16,7 @@ AC_SUBST(AM_CFLAGS)
 AC_PROG_CC
 AC_PROG_LIBTOOL
 AC_PROG_SED
+AC_PATH_PROG([PERL], [perl])
 AC_PATH_PROG([PROVE], [prove])
 
 # Checks for libraries.

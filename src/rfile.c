@@ -7,10 +7,8 @@
 #include "bits.h"
 #include "rfile.h"
 
-/*rfile_bits_READER( rfile__grange, rfile_range );*/
-/*rfile_bits_WRITER( rfile__prange, rfile_range );*/
-rfile_bits_READER( rfile__ghdr, rfile_chunk_header );
-rfile_bits_WRITER( rfile__phdr, rfile_chunk_header );
+#include "rfile_struct.h"
+#include "rfile_struct.c"
 
 static void
 rfile__init_hdr( rfile_chunk_header * hdr,
@@ -23,6 +21,11 @@ rfile__init_hdr( rfile_chunk_header * hdr,
   hdr->length = length;
   hdr->pos.start = start;
   hdr->pos.end = end;
+
+  /* Q&D silence unused warnings */
+  return;
+  rfile_range_reader( NULL, NULL );
+  rfile_range_writer( NULL, NULL );
 }
 
 static int
@@ -45,7 +48,7 @@ rfile__extent( rfile * rf, off_t * extp ) {
   if ( pos < 0 )
     return -1;
 
-  rc = rfile__ghdr( rf, &hdr );
+  rc = rfile_chunk_header_reader( rf, &hdr );
   *extp = hdr.pos.end;
 
   return 0;
@@ -84,7 +87,7 @@ static int
 rfile__setpos( rfile * rf, off_t pos ) {
   if ( lseek( rf->fd, pos, SEEK_SET ) < 0 )
     return -1;
-  if ( rfile__ghdr( rf, &rf->c_hdr ) < 0 )
+  if ( rfile_chunk_header_reader( rf, &rf->c_hdr ) < 0 )
     return -1;
   rf->c_pos = pos;
   return 0;
@@ -371,7 +374,7 @@ rfile_writev( rfile * rf, const struct iovec * iov, int iovcnt ) {
 
   pos = lseek( rf->fd, 0, SEEK_END );
 
-  if ( rfile__phdr( rf, &hdr ) < 0 )
+  if ( rfile_chunk_header_writer( rf, &hdr ) < 0 )
     goto fail;
 
   if ( bc = writev( rf->fd, iov, iovcnt ), bc != sz )
@@ -379,7 +382,7 @@ rfile_writev( rfile * rf, const struct iovec * iov, int iovcnt ) {
 
   hdr.type = rfile_DATA_OUT;
 
-  if ( rfile__phdr( rf, &hdr ) < 0 )
+  if ( rfile_chunk_header_writer( rf, &hdr ) < 0 )
     goto fail;
 
   rf->ext += bc;

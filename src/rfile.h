@@ -38,10 +38,6 @@ typedef struct {
   uint64_t start;
   uint64_t end;
 } rfile_range;
-#define rfile_range_SPEC "LL"
-#define rfile_range_MPTR MPTR(start), MPTR(end)
-#define rfile_range_MEMB MEMB(start), MEMB(end)
-#define rfile_range_SIZE (8 * 2)
 
 /* SERIALIZE */
 typedef struct {
@@ -52,13 +48,6 @@ typedef struct {
   rfile_range pos;
   rfile_range pos2;
 } rfile_chunk_header;
-#define rfile_chunk_header_SPEC "lllLLL"
-#define rfile_chunk_header_MPTR \
-  MPTR(sig), MPTR(version), MPTR(type), MPTR(length), MPTR(pos.start), MPTR(pos.end)
-#define rfile_chunk_header_MEMB \
-  MEMB(sig), MEMB(version), MEMB(type), MEMB(length), MEMB(pos.start), MEMB(pos.end)
-/* on-disk size - there must be a better way... */
-#define rfile_chunk_header_SIZE (4 * 3 + 8 * 3)
 
 typedef struct {
   int fd;
