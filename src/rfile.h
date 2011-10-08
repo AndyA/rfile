@@ -45,9 +45,15 @@ typedef struct {
   uint64_t length;
   rfile_range pos;
 } rfile_chunk_header;
-
+#define rfile_chunk_header_SPEC "lllLLL"
+#define rfile_chunk_header_MPTR \
+                  &hdr->sig, &hdr->version, &hdr->type, &hdr->length, \
+                  &hdr->pos.start, &hdr->pos.end
+#define rfile_chunk_header_MEMB \
+                  hdr->sig, hdr->version, hdr->type, hdr->length, \
+                  hdr->pos.start, hdr->pos.end
 /* on-disk size - there must be a better way... */
-#define rfile_HEADER_SIZE (4 * 3 + 8 * 3)
+#define rfile_chunk_header_SIZE (4 * 3 + 8 * 3)
 
 typedef struct {
   int fd;

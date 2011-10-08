@@ -251,5 +251,59 @@ rfile_bits_write( rfile_bits * bits, int fd, size_t len ) {
   return 0;
 }
 
+int
+rfile_bits_piddle( rfile_bits * bits, const char *spec, ... ) {
+  char cs;
+  va_list ap;
+
+  va_start( ap, spec );
+
+  while ( ( cs = *spec++ ) ) {
+    switch ( cs ) {
+    case 'l':
+      if ( rfile_bits_put32( bits, va_arg( ap, uint32_t ) ) )
+        return -1;
+      break;
+    case 'L':
+      if ( rfile_bits_put64( bits, va_arg( ap, uint64_t ) ) )
+        return -1;
+      break;
+    default:
+      errno = EINVAL;
+      return -1;
+    }
+  }
+
+  va_end( ap );
+  return 0;
+}
+
+int
+rfile_bits_guzzle( rfile_bits * bits, const char *spec, ... ) {
+  char cs;
+  va_list ap;
+
+  va_start( ap, spec );
+
+  while ( ( cs = *spec++ ) ) {
+    switch ( cs ) {
+    case 'l':
+      if ( rfile_bits_get32( bits, va_arg( ap, uint32_t * ) ) )
+        return -1;
+      break;
+    case 'L':
+      if ( rfile_bits_get64( bits, va_arg( ap, uint64_t * ) ) )
+        return -1;
+      break;
+    default:
+      errno = EINVAL;
+      return -1;
+    }
+  }
+
+  va_end( ap );
+  return 0;
+}
+
 /* vim:ts=2:sw=2:sts=2:et:ft=c 
  */

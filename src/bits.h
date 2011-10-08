@@ -13,6 +13,7 @@
 #include <stdint.h>
 #endif
 
+#include <stdarg.h>
 #include <stddef.h>
 #include <sys/types.h>
 
@@ -41,7 +42,7 @@ int rfile_bits_rewind( rfile_bits * bits );
 int rfile_bits_grow( rfile_bits * bits, size_t size );
 int rfile_bits_put( rfile_bits * bits, const unsigned char *buf,
                     size_t len );
-int rfile_bits_pad( rfile_bits *bits, size_t len );
+int rfile_bits_pad( rfile_bits * bits, size_t len );
 int rfile_bits_get( rfile_bits * bits, unsigned char *buf, size_t len );
 int rfile_bits_put32( rfile_bits * bits, uint32_t v );
 int rfile_bits_put64( rfile_bits * bits, uint64_t v );
@@ -53,6 +54,8 @@ int rfile_bits_puts( rfile_bits * bits, const char *s );
 const char *rfile_bits_gets( rfile_bits * bits );
 int rfile_bits_read( rfile_bits * bits, int fd, size_t len );
 int rfile_bits_write( rfile_bits * bits, int fd, size_t len );
+int rfile_bits_piddle( rfile_bits * bits, const char *spec, ... );
+int rfile_bits_guzzle( rfile_bits * bits, const char *spec, ... );
 
 #endif
 

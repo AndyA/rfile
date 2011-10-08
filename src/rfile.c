@@ -10,32 +10,26 @@
 static int
 rfile__ghdr( rfile * rf, rfile_chunk_header * hdr ) {
   rfile_bits b;
-  unsigned char buf[rfile_HEADER_SIZE];
+  unsigned char buf[rfile_chunk_header_SIZE];
   return rfile_bits_buf( &b, buf, sizeof( buf ) )
-      || rfile_bits_read( &b, rf->fd, rfile_HEADER_SIZE )
+      || rfile_bits_read( &b, rf->fd, rfile_chunk_header_SIZE )
       || rfile_bits_rewind( &b )
-      || rfile_bits_get32( &b, &hdr->sig )
-      || rfile_bits_get32( &b, &hdr->version )
-      || rfile_bits_get32( &b, &hdr->type )
-      || rfile_bits_get64( &b, &hdr->length )
-      || rfile_bits_get64( &b, &hdr->pos.start )
-      || rfile_bits_get64( &b, &hdr->pos.end )
+      || rfile_bits_guzzle( &b, rfile_chunk_header_SPEC, &hdr->sig,
+                            &hdr->version, &hdr->type, &hdr->length,
+                            &hdr->pos.start, &hdr->pos.end )
       ? -1 : 0;
 }
 
 static int
 rfile__phdr( rfile * rf, const rfile_chunk_header * hdr ) {
   rfile_bits b;
-  unsigned char buf[rfile_HEADER_SIZE];
+  unsigned char buf[rfile_chunk_header_SIZE];
   return rfile_bits_buf( &b, buf, sizeof( buf ) )
-      || rfile_bits_put32( &b, hdr->sig )
-      || rfile_bits_put32( &b, hdr->version )
-      || rfile_bits_put32( &b, hdr->type )
-      || rfile_bits_put64( &b, hdr->length )
-      || rfile_bits_put64( &b, hdr->pos.start )
-      || rfile_bits_put64( &b, hdr->pos.end )
+      || rfile_bits_piddle( &b, rfile_chunk_header_SPEC, hdr->sig,
+                            hdr->version, hdr->type, hdr->length,
+                            hdr->pos.start, hdr->pos.end )
       || rfile_bits_rewind( &b )
-      || rfile_bits_write( &b, rf->fd, rfile_HEADER_SIZE )
+      || rfile_bits_write( &b, rf->fd, rfile_chunk_header_SIZE )
       ? -1 : 0;
 }
 
@@ -68,7 +62,7 @@ rfile__extent( rfile * rf, off_t * extp ) {
     return 0;
   }
 
-  pos = lseek( rf->fd, -rfile_HEADER_SIZE, SEEK_END );
+  pos = lseek( rf->fd, -rfile_chunk_header_SIZE, SEEK_END );
   if ( pos < 0 )
     return -1;
 
@@ -141,7 +135,7 @@ rfile__seek( rfile * rf, off_t pos ) {
       off_t len = lseek( rf->fd, 0, SEEK_END );
       if ( len < 0 )
         return -1;
-      if ( rfile__setpos( rf, len - rfile_HEADER_SIZE ) < 0 )
+      if ( rfile__setpos( rf, len - rfile_chunk_header_SIZE ) < 0 )
         return -1;
       rf->c_pos = len - rf->c_hdr.length;
     }
@@ -153,9 +147,9 @@ rfile__seek( rfile * rf, off_t pos ) {
   }
 
   while ( rf->c_hdr.pos.start > pos ) {
-    if ( rfile__setpos( rf, rf->c_pos - rfile_HEADER_SIZE ) < 0 )
+    if ( rfile__setpos( rf, rf->c_pos - rfile_chunk_header_SIZE ) < 0 )
       return -1;
-    rf->c_pos += rfile_HEADER_SIZE - rf->c_hdr.length;
+    rf->c_pos += rfile_chunk_header_SIZE - rf->c_hdr.length;
   }
 
   return 0;
@@ -332,7 +326,7 @@ rfile_readv( rfile * rf, const struct iovec * iov, int iovcnt ) {
       fd = rf->fd;
       if ( lseek
            ( fd,
-             rf->c_pos + rfile_HEADER_SIZE + rf->fptr -
+             rf->c_pos + rfile_chunk_header_SIZE + rf->fptr -
              rf->c_hdr.pos.start, SEEK_SET ) < 0 )
         return -1;
       break;
@@ -393,7 +387,7 @@ rfile_writev( rfile * rf, const struct iovec * iov, int iovcnt ) {
   if ( sz == 0 )
     return 0;
 
-  rfile__init_hdr( &hdr, rfile_DATA_IN, sz + rfile_HEADER_SIZE * 2,
+  rfile__init_hdr( &hdr, rfile_DATA_IN, sz + rfile_chunk_header_SIZE * 2,
                    rf->ext, rf->ext + sz );
 
   pos = lseek( rf->fd, 0, SEEK_END );
