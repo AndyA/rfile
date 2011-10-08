@@ -7,6 +7,8 @@
 #include "bits.h"
 #include "rfile.h"
 
+/*rfile_bits_READER( rfile__grange, rfile_range );*/
+/*rfile_bits_WRITER( rfile__prange, rfile_range );*/
 rfile_bits_READER( rfile__ghdr, rfile_chunk_header );
 rfile_bits_WRITER( rfile__phdr, rfile_chunk_header );
 
