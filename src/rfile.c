@@ -420,7 +420,7 @@ fail:
 }
 
 ssize_t
-rfile_writeref( rfile * rf, const char *url, const rfile_range * range,
+rfile_writeref( rfile * rf, const char *ref, const rfile_range * range,
                 size_t count ) {
   return 0;
 }

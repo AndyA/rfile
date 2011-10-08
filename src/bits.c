@@ -105,6 +105,17 @@ rfile_bits_put( rfile_bits * bits, const unsigned char *buf, size_t len ) {
 }
 
 int
+rfile_bits_pad( rfile_bits * bits, size_t len ) {
+  if ( rfile_bits_grow( bits, bits->pos + len ) < 0 )
+    return -1;
+  memset( bits->buf + bits->pos, 0, len );
+  bits->pos += len;
+  if ( bits->used < bits->pos )
+    bits->used = bits->pos;
+  return 0;
+}
+
+int
 rfile_bits_get( rfile_bits * bits, unsigned char *buf, size_t len ) {
   if ( bits->pos + len > bits->used ) {
     errno = EIO;
@@ -165,6 +176,40 @@ rfile_bits_get64( rfile_bits * bits, uint64_t * v ) {
       | ( ( uint64_t ) buf[6] << 48 )
       | ( ( uint64_t ) buf[7] << 56 );
   return 0;
+}
+
+int
+rfile_bits_put_data( rfile_bits * bits, const void *data, size_t len ) {
+  return rfile_bits_put32( bits, len )
+      || rfile_bits_put( bits, data, len )
+      || rfile_bits_pad( bits, rfile_ALIGNUP( len ) - len ) ? -1 : 0;
+}
+
+const void *
+rfile_bits_get_data( rfile_bits * bits, size_t * len ) {
+  uint32_t sz;
+  const void *data;
+  if ( rfile_bits_get32( bits, &sz ) < 0 )
+    return NULL;
+  *len = sz;
+  if ( bits->pos + sz > bits->used ) {
+    errno = EIO;
+    return NULL;
+  }
+  data = bits->buf + bits->pos;
+  bits->pos += sz;
+  return data;
+}
+
+int
+rfile_bits_puts( rfile_bits * bits, const char *s ) {
+  return rfile_bits_put_data( bits, s, strlen( s ) + 1 );
+}
+
+const char *
+rfile_bits_gets( rfile_bits * bits ) {
+  size_t sz;
+  return ( const char * ) rfile_bits_get_data( bits, &sz );
 }
 
 int

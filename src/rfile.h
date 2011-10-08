@@ -69,7 +69,7 @@ ssize_t rfile_read( rfile * rf, void *buf, size_t nbyte );
 ssize_t rfile_readv( rfile * rf, const struct iovec *iov, int iovcnt );
 ssize_t rfile_write( rfile * rf, const void *buf, size_t nbyte );
 ssize_t rfile_writev( rfile * rf, const struct iovec *iov, int iovcnt );
-ssize_t rfile_writeref( rfile * rf, const char *url,
+ssize_t rfile_writeref( rfile * rf, const char *ref,
                         const rfile_range * range, size_t count );
 
 #endif
