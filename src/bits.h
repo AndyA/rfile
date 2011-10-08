@@ -57,29 +57,37 @@ int rfile_bits_write( rfile_bits * bits, int fd, size_t len );
 int rfile_bits_piddle( rfile_bits * bits, const char *spec, ... );
 int rfile_bits_guzzle( rfile_bits * bits, const char *spec, ... );
 
-#define rfile_bits_READER( name, spec, mptr, size ) \
-  static int                                        \
-  name( rfile * rf, rfile_chunk_header * hdr ) {    \
-    rfile_bits b;                                   \
-    unsigned char buf[size];                        \
-    return rfile_bits_buf( &b, buf, sizeof( buf ) ) \
-        || rfile_bits_read( &b, rf->fd, size )      \
-        || rfile_bits_rewind( &b )                  \
-        || rfile_bits_guzzle( &b, spec, mptr )      \
-        ? -1 : 0;                                   \
+#define rfile_bits__READER( name, type, spec, mptr, size ) \
+  static int                                              \
+  name( rfile * rf, type * hdr ) {                        \
+    rfile_bits b;                                         \
+    unsigned char buf[size];                              \
+    return rfile_bits_buf( &b, buf, sizeof( buf ) )       \
+        || rfile_bits_read( &b, rf->fd, size )            \
+        || rfile_bits_rewind( &b )                        \
+        || rfile_bits_guzzle( &b, spec, mptr )            \
+        ? -1 : 0;                                         \
   }
 
-#define rfile_bits_WRITER( name, spec, memb, size )    \
-  static int                                           \
-  name( rfile * rf, const rfile_chunk_header * hdr ) { \
-    rfile_bits b;                                      \
-    unsigned char buf[size];                           \
-    return rfile_bits_buf( &b, buf, sizeof( buf ) )    \
-        || rfile_bits_piddle( &b, spec, memb )         \
-        || rfile_bits_rewind( &b )                     \
-        || rfile_bits_write( &b, rf->fd, size )        \
-        ? -1 : 0;                                      \
+#define rfile_bits__WRITER( name, type, spec, memb, size ) \
+  static int                                              \
+  name( rfile * rf, const type * hdr ) {                  \
+    rfile_bits b;                                         \
+    unsigned char buf[size];                              \
+    return rfile_bits_buf( &b, buf, sizeof( buf ) )       \
+        || rfile_bits_piddle( &b, spec, memb )            \
+        || rfile_bits_rewind( &b )                        \
+        || rfile_bits_write( &b, rf->fd, size )           \
+        ? -1 : 0;                                         \
   }
+
+#define rfile_bits_READER( name, type ) \
+  rfile_bits__READER( name, type, type ## _SPEC, \
+                      type ## _MPTR, type ## _SIZE )
+
+#define rfile_bits_WRITER( name, type ) \
+  rfile_bits__WRITER( name, type, type ## _SPEC, \
+                      type ## _MEMB, type ## _SIZE )
 
 #endif
 

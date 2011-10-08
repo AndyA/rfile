@@ -7,11 +7,8 @@
 #include "bits.h"
 #include "rfile.h"
 
-rfile_bits_READER( rfile__ghdr, rfile_chunk_header_SPEC,
-                   rfile_chunk_header_MPTR, rfile_chunk_header_SIZE );
-
-rfile_bits_WRITER( rfile__phdr, rfile_chunk_header_SPEC,
-                   rfile_chunk_header_MEMB, rfile_chunk_header_SIZE );
+rfile_bits_READER( rfile__ghdr, rfile_chunk_header );
+rfile_bits_WRITER( rfile__phdr, rfile_chunk_header );
 
 static void
 rfile__init_hdr( rfile_chunk_header * hdr,
