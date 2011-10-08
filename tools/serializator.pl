@@ -107,7 +107,9 @@ sub ser_code {
   my $n   = $rec->{name};
 
   return "rfile_bits_READER( ${n}_reader, $n );\n"
-   . "rfile_bits_WRITER( ${n}_writer, $n );\n";
+   . "rfile_bits_WRITER( ${n}_writer, $n );\n"
+   . "rfile_bits_PIDDLE( ${n}_piddle, $n );\n"
+   . "rfile_bits_GUZZLE( ${n}_guzzle, $n );\n";
 }
 
 sub usage {

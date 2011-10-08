@@ -81,6 +81,18 @@ int rfile_bits_guzzle( rfile_bits * bits, const char *spec, ... );
         ? -1 : 0;                                         \
   }
 
+#define rfile_bits__GUZZLE( name, type, spec, mptr ) \
+  static int                                         \
+  name( rfile_bits * b, type * obj ) {               \
+    return rfile_bits_guzzle( b, spec, mptr );       \
+  }
+
+#define rfile_bits__PIDDLE( name, type, spec, memb ) \
+  static int                                         \
+  name( rfile_bits * b, const type * obj ) {         \
+    return rfile_bits_piddle( b, spec, memb );       \
+  }
+
 #define rfile_bits_READER( name, type ) \
   rfile_bits__READER( name, type, type ## _SPEC, \
                       type ## _MPTR, type ## _SIZE )
@@ -88,6 +100,12 @@ int rfile_bits_guzzle( rfile_bits * bits, const char *spec, ... );
 #define rfile_bits_WRITER( name, type ) \
   rfile_bits__WRITER( name, type, type ## _SPEC, \
                       type ## _MEMB, type ## _SIZE )
+
+#define rfile_bits_GUZZLE( name, type ) \
+  rfile_bits__GUZZLE( name, type, type ## _SPEC, type ## _MPTR )
+
+#define rfile_bits_PIDDLE( name, type ) \
+  rfile_bits__PIDDLE( name, type, type ## _SPEC, type ## _MEMB )
 
 #define MEMB(n) ((obj)->n)
 #define MPTR(n) (&MEMB(n))

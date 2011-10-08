@@ -21,11 +21,6 @@ rfile__init_hdr( rfile_chunk_header * hdr,
   hdr->length = length;
   hdr->pos.start = start;
   hdr->pos.end = end;
-
-  /* Q&D silence unused warnings */
-  return;
-  rfile_range_reader( NULL, NULL );
-  rfile_range_writer( NULL, NULL );
 }
 
 static int
@@ -395,10 +390,63 @@ fail:
   return -1;
 }
 
+static ssize_t
+rfile__ref2bits( rfile_bits * b, const char *ref,
+                 const rfile_range * range, size_t count ) {
+  size_t expsz = 0, size = 4 + rfile_ALIGNUP( strlen( ref ) + 1 ) +
+      rfile_range_SIZE * count;
+  unsigned i;
+
+  if ( rfile_bits_init( b, size ) ||
+       rfile_bits_put32( b, count ) || rfile_bits_puts( b, ref ) )
+    return -1;
+  for ( i = 0; i < count; i++ ) {
+    expsz += range[i].end - range[i].start;
+    if ( rfile_range_piddle( b, &range[i] ) )
+      return -1;
+  }
+
+  return expsz;
+}
+
 ssize_t
 rfile_writeref( rfile * rf, const char *ref, const rfile_range * range,
                 size_t count ) {
-  return 0;
+  rfile_chunk_header hdr;
+  ssize_t bc, expsz;
+  off_t pos;
+  rfile_bits b;
+
+  if ( rf->fptr != rf->ext ) {
+    errno = EINVAL;
+    return -1;
+  }
+
+  if ( expsz = rfile__ref2bits( &b, ref, range, count ), expsz < 0 )
+    return -1;
+
+  rfile__init_hdr( &hdr, rfile_REF_IN,
+                   b.used + rfile_chunk_header_SIZE * 2, rf->ext,
+                   rf->ext + expsz );
+
+  pos = lseek( rf->fd, 0, SEEK_END );
+
+  if ( rfile_chunk_header_writer( rf, &hdr ) )
+    goto fail;
+
+  if ( bc = write( rf->fd, b.buf, b.used ), bc != b.used )
+    goto fail;
+
+  if ( rfile_chunk_header_writer( rf, &hdr ) < 0 )
+    goto fail;
+
+  rfile_bits_destroy( &b );
+  return expsz;
+
+fail:
+  rfile_bits_destroy( &b );
+  ftruncate( rf->fd, pos );
+  return -1;
 }
 
 /* vim:ts=2:sw=2:sts=2:et:ft=c 

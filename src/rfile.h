@@ -46,7 +46,6 @@ typedef struct {
   uint32_t type;
   uint64_t length;
   rfile_range pos;
-  rfile_range pos2;
 } rfile_chunk_header;
 
 typedef struct {
