@@ -542,17 +542,6 @@ rfile__ref2bits( rfile_bits * b, const rfile_ref * ref, const char *refn ) {
   return expsz;
 }
 
-/*
-
-   rel     0 rel
-   rel   REL rel
-   rel   ABS abs
-   abs     0 abs
-   abs   REL rel
-   abs   ABS abs
-
-   */
-
 static char *
 rfile__fixup_ref( rfile * rf, const rfile_ref * ref ) {
   if ( rfile_fn_is_url( ref->ref ) ) {
