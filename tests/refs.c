@@ -10,37 +10,9 @@
 #include "testutil.h"
 #include "rfile.h"
 
-static char *
-mkfile( void ) {
-  char *tmp = tu_tmp(  );
-  char *src = "/etc/hosts";
-  char buf[1024];
-
-  int rd, wd;
-  if ( rd = open( src, O_RDONLY ), rd < 0 )
-    die( "Failed to read %s: %s", src, strerror( errno ) );
-  if ( wd = open( tmp, O_WRONLY ), rd < 0 )
-    die( "Failed to write %s: %s", tmp, strerror( errno ) );
-
-  for ( ;; ) {
-    ssize_t got = read( rd, buf, sizeof( buf ) );
-    ssize_t done;
-    if ( got == 0 )
-      break;
-    if ( got < 0 )
-      die( "Failed to read %s: %s", src, strerror( errno ) );
-    done = write( rd, buf, got );
-    if ( done != got )
-      die( "Failed to write %s: %s", tmp, strerror( errno ) );
-  }
-  close( rd );
-  close( wd );
-  return tmp;
-}
-
 static void
 test_001( void ) {
-  char *ref = "/etc/hosts";
+  char *ref = tu_make_file( 12345, 0 );
   char *tf = NULL;
   struct stat st, rst;
 
@@ -79,6 +51,7 @@ test_001( void ) {
     free( got );
   }
 
+  free( ref );
   free( tf );
 }
 
