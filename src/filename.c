@@ -125,10 +125,10 @@ rfile_fn_rel2abs( const char *rel, const char *base ) {
         return NULL;
       blen = strlen( bd );
     }
-  }
 
-  if ( bd[blen] != '/' )
-    bd[blen++] = '/';
+    if ( bd[blen] != '/' )
+      bd[blen++] = '/';
+  }
 
   rlen = strlen( rel ) + 1;
 
