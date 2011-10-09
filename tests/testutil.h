@@ -17,6 +17,7 @@ void *tu_malloc( size_t sz );
 char *tu_strdup( const char *s );
 
 char *tu_cleanup( char *filename );
+void *tu_load( const char *name, size_t * sz, int is_ref );
 void tu_mkpath( const char *path, mode_t mode );
 void tu_mkpath_for( const char *path, mode_t mode );
 char *tu_tmp( void );

@@ -92,6 +92,40 @@ rand_fill( void *mem, size_t size, unsigned seed ) {
   }
 }
 
+void *
+tu_load( const char *name, size_t * sz, int is_ref ) {
+  struct stat st;
+  ssize_t got;
+  void *buf;
+
+  if ( is_ref ) {
+    rfile *rf;
+
+    check( rfile_stat( name, &st ) );
+    buf = tu_malloc( st.st_size + 1 );
+    if ( rf = rfile_open( name, O_RDONLY ), !rf )
+      die( "Can't read %s: %s", name, strerror( errno ) );
+    check( ( got = rfile_read( rf, buf, st.st_size ), got < 0 ) );
+    if ( got != st.st_size )
+      die( "Short read of %s", name );
+    check( rfile_close( rf ) );
+  }
+  else {
+    int fd;
+
+    check( stat( name, &st ) );
+    buf = tu_malloc( st.st_size + 1 );
+    if ( fd = open( name, O_RDONLY ), fd < 0 )
+      die( "Can't read %s: %s", name, strerror( errno ) );
+    check( ( got = read( fd, buf, st.st_size ), got < 0 ) );
+    if ( got != st.st_size )
+      die( "Short read of %s", name );
+    check( close( fd ) );
+  }
+  *sz = st.st_size;
+  return buf;
+}
+
 static char *
 tu__dirname( const char *name ) {
   char *tmp = tu_strdup( name );
