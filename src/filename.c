@@ -4,20 +4,22 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 #include <sys/param.h>
+#include <unistd.h>
 
 #include "filename.h"
 
 int
+rfile_fn_is_url( const char *fn ) {
+  const char *fnp;
+
+  for ( fnp = fn; *fnp && isalpha( *fnp ); fnp++ ) ;
+  return fnp > fn + 2 && strlen( fnp ) > 3 && !memcmp( fnp, "://", 3 );
+}
+
+int
 rfile_fn_is_abs( const char *fn ) {
-  if ( *fn == '/' )
-    return 1;
-
-  while ( *fn && isalpha( *fn ) )
-    fn++;
-
-  return strlen( fn ) > 3 && !memcmp( fn, "://", 3 );
+  return rfile_fn_is_url( fn ) || *fn == '/';
 }
 
 char *

@@ -3,6 +3,7 @@
 #ifndef __FILENAME_H
 #define __FILENAME_H
 
+int rfile_fn_is_url( const char *fn );
 int rfile_fn_is_abs( const char *fn );
 char *rfile_fn_rel2abs( const char *rel, const char *base );
 
