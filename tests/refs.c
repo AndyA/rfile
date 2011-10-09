@@ -10,14 +10,71 @@
 #include "testutil.h"
 #include "rfile.h"
 
+static char *
+mkfile( void ) {
+  char *tmp = tu_tmp(  );
+  char *src = "/etc/hosts";
+  char buf[1024];
+
+  int rd, wd;
+  if ( rd = open( src, O_RDONLY ), rd < 0 )
+    die( "Failed to read %s: %s", src, strerror( errno ) );
+  if ( wd = open( tmp, O_WRONLY ), rd < 0 )
+    die( "Failed to write %s: %s", tmp, strerror( errno ) );
+
+  for ( ;; ) {
+    ssize_t got = read( rd, buf, sizeof( buf ) );
+    ssize_t done;
+    if ( got == 0 )
+      break;
+    if ( got < 0 )
+      die( "Failed to read %s: %s", src, strerror( errno ) );
+    done = write( rd, buf, got );
+    if ( done != got )
+      die( "Failed to write %s: %s", tmp, strerror( errno ) );
+  }
+  close( rd );
+  close( wd );
+  return tmp;
+}
+
 static void
 test_001( void ) {
-  ok( 1, "That's OK" );
+  char *tf = NULL;
+  struct stat st, rst;
+
+  /* write file */
+  {
+    char *ref = "/etc/hosts";
+    rfile_range r[1];
+    rfile_ref rfref;
+    ssize_t done;
+
+    check( stat( ref, &st ) );
+    rfref.ref = ref;
+    rfref.range = r;
+    rfref.count = countof( r );
+    r[0].start = 0;
+    r[0].end = st.st_size;
+
+    rfile *rf = tu_create( &tf );
+    done = rfile_writeref( rf, &rfref );
+    is( done, st.st_size, "Size matches (write)" );
+    check( rfile_close( rf ) );
+  }
+
+  {
+
+    check( rfile_stat( tf, &rst ) );
+    is( st.st_size, rst.st_size, "Size matches (stat)" );
+  }
+
+  free( tf );
 }
 
 int
 main( void ) {
-  plan( 1 );
+  plan( 2 );
   test_001(  );
   return 0;
 }
