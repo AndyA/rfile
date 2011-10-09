@@ -32,6 +32,13 @@ sub serializator {
   open my $ch, '>', $cf  or die "Can't write $cf: $!\n";
   open my $hh, '>', $hf  or die "Can't write $hf: $!\n";
 
+  for ( [ $cf, $ch ], [ $hf, $hh ] ) {
+    my ( $n, $h ) = @$_;
+    print $h "/* $n - GENERATED FILE: DO NOT EDIT\n",
+     " * generated from $hdr by $0\n",
+     " */\n";
+  }
+
   my $ser    = 0;
   my @struct = ();
 
@@ -44,6 +51,7 @@ sub serializator {
       if ( $line =~ m/^}\s+(\w+)\s*;$/ ) {
         my $def = parse_struct( $1, @struct );
         @struct = ();
+        print $_ "\n/* $def->{name} */\n" for $ch, $hh;
         print $hh ser_defs( $def );
         print $ch ser_code( $def );
         $ser = 0;
@@ -96,8 +104,8 @@ sub ser_defs {
 
   return
      "#define ${n}_SPEC \"$typ\"\n"
-   . "#define ${n}_MPTR \\\n  $mptr\n"
-   . "#define ${n}_MEMB \\\n  $memb\n"
+   . "#define ${n}_MPTR $mptr\n"
+   . "#define ${n}_MEMB $memb\n"
    . "#define ${n}_SIZE $sz\n";
 
 }
@@ -106,7 +114,8 @@ sub ser_code {
   my $rec = shift;
   my $n   = $rec->{name};
 
-  return "rfile_bits_READER( ${n}_reader, $n );\n"
+  return
+     "rfile_bits_READER( ${n}_reader, $n );\n"
    . "rfile_bits_WRITER( ${n}_writer, $n );\n"
    . "rfile_bits_PIDDLE( ${n}_piddle, $n );\n"
    . "rfile_bits_GUZZLE( ${n}_guzzle, $n );\n";
