@@ -65,13 +65,14 @@ tu_strdup( const char *s ) {
   return NULL;
 }
 
-void
-tu_cleanup( const char *filename ) {
+char *
+tu_cleanup( char *filename ) {
   tu__cleanup_file *cf = tu_malloc( sizeof( tu__cleanup_file ) );
   cf->name = tu_strdup( filename );
   cf->next = cl_file;
   cl_file = cf;
   atexit_hook(  );
+  return filename;
 }
 
 void
@@ -132,8 +133,8 @@ tu_mkpath_for( const char *path, mode_t mode ) {
   free( dir );
 }
 
-void
-tu_tmp( char **name ) {
+char *
+tu_tmp( void ) {
   const char *forensic = getenv( "RFILE_FORENSIC" );
   if ( forensic && *forensic ) {
     tu_mkpath( forensic, 0777 );
@@ -142,10 +143,10 @@ tu_tmp( char **name ) {
     memcpy( tmp, forensic, len );
     tmp[len++] = '/';
     len += sprintf( tmp + len, "rf.%05d.tmp", next_tmp++ );
-    *name = tmp;
+    return tmp;
   }
   else {
-    tu_cleanup( *name = tu_strdup( tmpnam( NULL ) ) );
+    return tu_cleanup( tu_strdup( tmpnam( NULL ) ) );
   }
 }
 
@@ -153,7 +154,7 @@ rfile *
 tu_create( char **name ) {
   rfile *rf;
 
-  tu_tmp( name );
+  *name = tu_tmp(  );
   if ( NULL == ( rf = rfile_create( *name, 0600 ) ) )
     die( "Can't create %s: %s", *name, strerror( errno ) );
 

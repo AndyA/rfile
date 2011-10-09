@@ -16,10 +16,10 @@ void rand_fill( void *mem, size_t size, unsigned seed );
 void *tu_malloc( size_t sz );
 char *tu_strdup( const char *s );
 
-void tu_cleanup( const char *filename );
+char *tu_cleanup( char *filename );
 void tu_mkpath( const char *path, mode_t mode );
 void tu_mkpath_for( const char *path, mode_t mode );
-void tu_tmp( char **name );
+char *tu_tmp( void );
 rfile *tu_create( char **name );
 uint64_t tu_bigrand( uint64_t max, unsigned *seed );
 void tu_mk_range_list( rfile_range * rl, size_t rlcount, size_t dsize,
