@@ -49,10 +49,16 @@ typedef struct {
   rfile_range pos;
 } rfile_chunk_header;
 
+#define rfile_ref_ABS  1
+#define rfile_ref_REL  2 
+
 typedef struct {
   char *ref;
   rfile_range *range;
   size_t count;
+  unsigned flags;
+
+  /* private */
   int fd;
 } rfile_ref;
 

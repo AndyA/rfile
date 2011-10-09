@@ -26,6 +26,7 @@ test_001( void ) {
     rfref.ref = ref;
     rfref.range = r;
     rfref.count = countof( r );
+    rfref.flags = rfile_ref_REL;
     r[0].start = 0;
     r[0].end = st.st_size;
 

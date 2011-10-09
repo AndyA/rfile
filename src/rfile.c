@@ -525,13 +525,13 @@ fail:
 }
 
 static ssize_t
-rfile__ref2bits( rfile_bits * b, const rfile_ref * ref ) {
+rfile__ref2bits( rfile_bits * b, const rfile_ref * ref, const char *refn ) {
   size_t expsz = 0, size = 4 + rfile_ALIGNUP( strlen( ref->ref ) + 1 ) +
       rfile_range_SIZE * ref->count;
   unsigned i;
 
   if ( rfile_bits_init( b, size ) || rfile_bits_put32( b, ref->count )
-       || rfile_bits_puts( b, ref->ref ) )
+       || rfile_bits_puts( b, refn ? refn : ref->ref ) )
     return -1;
   for ( i = 0; i < ref->count; i++ ) {
     expsz += ref->range[i].end - ref->range[i].start;
@@ -542,26 +542,59 @@ rfile__ref2bits( rfile_bits * b, const rfile_ref * ref ) {
   return expsz;
 }
 
+/*
+
+   rel     0 rel
+   rel   REL rel
+   rel   ABS abs
+   abs     0 abs
+   abs   REL rel
+   abs   ABS abs
+
+   */
+
+static char *
+rfile__fixup_ref( rfile * rf, const rfile_ref * ref ) {
+  if ( rfile_fn_is_url( ref->ref ) ) {
+    char *refn = strdup( ref->ref );
+    if ( !refn )
+      errno = ENOMEM;
+    return refn;
+  }
+
+  if ( !( ref->flags & rfile_ref_ABS )
+       && ( ( ref->flags & rfile_ref_REL )
+            || !rfile_fn_is_abs( ref->ref ) ) ) {
+    return rfile_fn_abs2rel_file( ref->ref, rf->fname );
+  }
+
+  return rfile_fn_rel2abs_file( ref->ref, rf->fname );
+}
+
 ssize_t
 rfile_writeref( rfile * rf, const rfile_ref * ref ) {
   rfile_chunk_header hdr;
   ssize_t expsz;
   off_t pos;
   rfile_bits b;
+  char *refn = NULL;
 
   if ( rf->fptr != rf->ext ) {
     errno = EINVAL;
     return -1;
   }
+  pos = lseek( rf->fd, 0, SEEK_END );
 
-  if ( expsz = rfile__ref2bits( &b, ref ), expsz < 0 )
+  if ( refn = rfile__fixup_ref( rf, ref ), !refn )
     return -1;
+  expsz = rfile__ref2bits( &b, ref, refn );
+  free( refn );
+  if ( expsz < 0 )
+    goto fail;
 
   rfile__init_hdr( &hdr, rfile_REF_IN,
                    b.used + rfile_chunk_header_SIZE * 2, rf->ext,
                    rf->ext + expsz );
-
-  pos = lseek( rf->fd, 0, SEEK_END );
 
   if ( rfile_chunk_header_writer( rf, &hdr ) ||
        rfile_bits_rewind( &b ) || rfile_bits_write( &b, rf->fd, b.used ) )
