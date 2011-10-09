@@ -40,12 +40,12 @@ mkfile( void ) {
 
 static void
 test_001( void ) {
+  char *ref = "/etc/hosts";
   char *tf = NULL;
   struct stat st, rst;
 
   /* write file */
   {
-    char *ref = "/etc/hosts";
     rfile_range r[1];
     rfile_ref rfref;
     ssize_t done;
@@ -64,9 +64,17 @@ test_001( void ) {
   }
 
   {
-
     check( rfile_stat( tf, &rst ) );
     is( st.st_size, rst.st_size, "Size matches (stat)" );
+  }
+
+  {
+    size_t wsz, gsz;
+    void *want, *got;
+    want = tu_load( ref, &wsz, 0 );
+    got = tu_load( tf, &gsz, 1 );
+    is( gsz, wsz, "Size matches (read)" );
+    ok( !memcmp( got, want, gsz ), "Data matches" );
   }
 
   free( tf );
@@ -74,7 +82,7 @@ test_001( void ) {
 
 int
 main( void ) {
-  plan( 2 );
+  plan( 4 );
   test_001(  );
   return 0;
 }

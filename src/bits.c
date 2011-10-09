@@ -197,7 +197,7 @@ rfile_bits_get_data( rfile_bits * bits, size_t * len ) {
     return NULL;
   }
   data = bits->buf + bits->pos;
-  bits->pos += sz;
+  bits->pos = rfile_ALIGNUP( bits->pos + sz );
   return data;
 }
 

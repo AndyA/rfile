@@ -332,6 +332,7 @@ rfile__load_ref( rfile * rf, rfile_ref * ref ) {
                         sizeof( rfile_range ) * count ) )
     goto fail;
 
+  ref->count = count;
   for ( i = 0; i < count; i++ ) {
     if ( rfile_range_guzzle( &b, &ref->range[i] ) )
       goto fail;
@@ -417,6 +418,10 @@ rfile__readv( rfile * rf, const struct iovec * iov, int iovcnt,
             return -1;
 
           slot = rfile__range_find( ref, rpos, &rseek );
+          if ( slot < 0 ) {
+            errno = EIO;
+            return -1;
+          }
 
           avail = ref->range[slot].end - rseek;
           fd = ref->fd;
