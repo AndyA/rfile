@@ -137,8 +137,8 @@ tu_tmp( char **name ) {
   const char *forensic = getenv( "RFILE_FORENSIC" );
   if ( forensic && *forensic ) {
     tu_mkpath( forensic, 0777 );
-    char *tmp = tu_malloc( strlen( forensic ) + 32 );
     size_t len = strlen( forensic );
+    char *tmp = tu_malloc( len + 32 );
     memcpy( tmp, forensic, len );
     tmp[len++] = '/';
     len += sprintf( tmp + len, "rf.%05d.tmp", next_tmp++ );
