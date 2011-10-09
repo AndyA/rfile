@@ -75,6 +75,8 @@ test_001( void ) {
     got = tu_load( tf, &gsz, 1 );
     is( gsz, wsz, "Size matches (read)" );
     ok( !memcmp( got, want, gsz ), "Data matches" );
+    free( want );
+    free( got );
   }
 
   free( tf );
