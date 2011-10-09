@@ -20,7 +20,7 @@ test_001( void ) {
     10000, 11300, 11320, 11327, -1
   };
 
-  rand_fill( data, sizeof( data ), 0 );
+  tu_rand_fill( data, sizeof( data ), 0 );
 
   for ( sn = 0; step[sn] > 0; sn++ ) {
     char *tf = NULL;
@@ -101,7 +101,7 @@ test_002( void ) {
   char *tf = NULL;
   char data[13271];
 
-  rand_fill( data, sizeof( data ), 0 );
+  tu_rand_fill( data, sizeof( data ), 0 );
 
   /* write file */
   {

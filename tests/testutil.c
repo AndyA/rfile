@@ -84,7 +84,7 @@ check_rc( const char *file, int line, const char *src, int rc ) {
 }
 
 void
-rand_fill( void *mem, size_t size, unsigned seed ) {
+tu_rand_fill( void *mem, size_t size, unsigned seed ) {
   unsigned char *mp = ( unsigned char * ) mem;
   off_t i;
   for ( i = 0; i < size; i++ ) {
@@ -124,6 +124,33 @@ tu_load( const char *name, size_t * sz, int is_ref ) {
   }
   *sz = st.st_size;
   return buf;
+}
+
+char *
+tu_make_file( size_t sz, unsigned seed ) {
+  unsigned char buf[16384];
+  char *tmp = tu_tmp(  );
+  int fd;
+
+  if ( fd = open( tmp, O_WRONLY ), fd < 0 )
+    die( "Can't write %s: %s", tmp, strerror( errno ) );
+
+  while ( sz > 0 ) {
+    size_t want = sz;
+    size_t done;
+    if ( want > sizeof( buf ) )
+      want = sizeof( buf );
+    tu_rand_fill( buf, want, seed );
+    seed = rand_r( &seed );
+    done = write( fd, buf, want );
+    if ( done < 0 )
+      die( "Write error on %s: %s", tmp, strerror( errno ) );
+    if ( done != want )
+      die( "Bad write on %s", tmp );
+    sz -= done;
+  }
+  close( fd );
+  return tmp;
 }
 
 static char *

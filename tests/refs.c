@@ -1,4 +1,4 @@
-/* tests/refs.c */
+/* refs.c */
 
 #include <stdio.h>
 #include <stdlib.h>
