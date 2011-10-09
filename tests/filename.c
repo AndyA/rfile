@@ -56,7 +56,7 @@ test_002( void ) {
   tidy_ok( "/../tmp", "/tmp", "silly root up" );
   tidy_ok( "foo/..", ".", "degenerate special case" );
 
-  tidy_ok( ".//../foo/baz/../bim//../.././bar", "../bar", "pointless" );
+  tidy_ok( ".//../foo2/baz33/../bim444//../.././bar", "../bar", "pointless" );
 }
 
 static void
