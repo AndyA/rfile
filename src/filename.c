@@ -23,6 +23,12 @@ rfile_fn_is_abs( const char *fn ) {
   return rfile_fn_is_url( fn ) || *fn == '/';
 }
 
+static void
+_inplace_strcpy( char *dst, const char *src ) {
+  size_t len = strlen( src );
+  memmove( dst, src, len + 1 );
+}
+
 char *
 rfile_fn_tidy( const char *name ) {
   char *fn, *pos;
@@ -33,11 +39,11 @@ rfile_fn_tidy( const char *name ) {
   }
 
   for ( pos = fn; ( pos = strstr( pos, "//" ) ); )
-    strcpy( pos, pos + 1 );
+    _inplace_strcpy( pos, pos + 1 );
 
   for ( pos = fn; ( pos = strstr( pos, "./" ) ); ) {
     if ( ( pos == fn && pos[2] ) || pos[-1] == '/' ) {
-      strcpy( pos, pos + 2 );
+      _inplace_strcpy( pos, pos + 2 );
       continue;
     }
     pos++;
@@ -48,7 +54,7 @@ rfile_fn_tidy( const char *name ) {
 
     /* start of absolute name */
     if ( pos == fn ) {
-      strcpy( pos, pos + 3 );
+      _inplace_strcpy( pos, pos + 3 );
       continue;
     }
 
@@ -66,15 +72,15 @@ rfile_fn_tidy( const char *name ) {
 
     if ( p2 == fn ) {
       if ( pos[3] == '\0' ) {
-        strcpy( fn, "." );
+        _inplace_strcpy( fn, "." );
         return fn;
       }
-      strcpy( p2, pos + 4 );
+      _inplace_strcpy( p2, pos + 4 );
       pos = p2;
     }
     else {
       p2--;
-      strcpy( p2, pos + 3 );
+      _inplace_strcpy( p2, pos + 3 );
       pos = p2;
     }
   }
