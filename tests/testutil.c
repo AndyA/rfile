@@ -132,8 +132,8 @@ tu_make_file( size_t sz, unsigned seed ) {
   char *tmp = tu_tmp(  );
   int fd;
 
-  if ( fd = open( tmp, O_WRONLY ), fd < 0 )
-    die( "Can't write %s: %s", tmp, strerror( errno ) );
+  if ( fd = open( tmp, O_CREAT | O_WRONLY, 0666 ), fd < 0 )
+    die( LOC( "Can't write %s: %s" ), tmp, strerror( errno ) );
 
   while ( sz > 0 ) {
     size_t want = sz;
@@ -144,9 +144,9 @@ tu_make_file( size_t sz, unsigned seed ) {
     seed = rand_r( &seed );
     done = write( fd, buf, want );
     if ( done < 0 )
-      die( "Write error on %s: %s", tmp, strerror( errno ) );
+      die( LOC( "Write error on %s: %s" ), tmp, strerror( errno ) );
     if ( done != want )
-      die( "Bad write on %s", tmp );
+      die( LOC( "Bad write on %s" ), tmp );
     sz -= done;
   }
   close( fd );
