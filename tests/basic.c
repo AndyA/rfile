@@ -92,7 +92,6 @@ test_001( void ) {
       check( rfile_close( rf ) );
     }
 
-    check( unlink( tf ) );
     free( tf );
   }
 }
@@ -146,7 +145,6 @@ test_002( void ) {
     }
   }
 
-  check( unlink( tf ) );
   free( tf );
 }
 

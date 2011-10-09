@@ -4,13 +4,75 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <sys/types.h>
+#include <unistd.h>
 
 #include "testutil.h"
 #include "tap.h"
 
 #define ELTPT(base, i, w) \
   (void *) ((char *) (base) + (i) * (w))
+
+typedef struct tu__cleanup_file tu__cleanup_file;
+
+struct tu__cleanup_file {
+  tu__cleanup_file *next;
+  char *name;
+};
+
+static tu__cleanup_file *cl_file = NULL;
+static unsigned next_tmp = 1;
+
+static void
+cleanup( void ) {
+  tu__cleanup_file *next;
+  while ( cl_file ) {
+    unlink( cl_file->name );
+    next = cl_file->next;
+    free( cl_file->name );
+    free( cl_file );
+    cl_file = next;
+  }
+}
+
+static int atexit_done = 0;
+static void
+atexit_hook( void ) {
+  if ( !atexit_done++ )
+    atexit( cleanup );
+}
+
+void *
+tu_malloc( size_t sz ) {
+  void *m;
+  if ( !sz )
+    sz++;
+  if ( m = malloc( sz ), !m )
+    die( "Out of memory" );
+  memset( m, 0, sz );
+  return m;
+}
+
+char *
+tu_strdup( const char *s ) {
+  if ( s ) {
+    size_t l = strlen( s ) + 1;
+    char *sd = tu_malloc( l );
+    memcpy( sd, s, l );
+    return sd;
+  }
+  return NULL;
+}
+
+void
+tu_cleanup( const char *filename ) {
+  tu__cleanup_file *cf = tu_malloc( sizeof( tu__cleanup_file ) );
+  cf->name = tu_strdup( filename );
+  cf->next = cl_file;
+  cl_file = cf;
+  atexit_hook(  );
+}
 
 void
 check_rc( const char *file, int line, int rc ) {
@@ -27,11 +89,64 @@ rand_fill( void *mem, size_t size, unsigned seed ) {
   }
 }
 
+static char *
+tu__dirname( const char *name ) {
+  char *dir = tu_strdup( name );
+  char *slash = strrchr( dir, '/' );
+  if ( slash ) {
+    *slash = '\0';
+    return dir;
+  }
+  free( dir );
+  return NULL;
+}
+
+void
+tu_mkpath( const char *path, mode_t mode ) {
+  struct stat st;
+  char *dir;
+  int rc;
+
+  if ( rc = stat( path, &st ), rc && errno != ENOENT )
+    goto fail;
+  if ( rc == 0 && st.st_mode & S_IFDIR )
+    return;
+  dir = tu__dirname( path );
+  if ( dir ) {
+    tu_mkpath( dir, mode );
+    free( dir );
+  }
+  printf( "mkdir(\"%s\")\n", path );
+  if ( mkdir( path, mode ) )
+    goto fail;
+  return;
+
+fail:
+  die( "tu_mkpath %s failed: %s", path, strerror( errno ) );
+}
+
+void
+tu_mkpath_for( const char *path, mode_t mode ) {
+  char *dir = tu__dirname( path );
+  tu_mkpath( dir, mode );
+  free( dir );
+}
+
 void
 tu_tmp( char **name ) {
-  char *tmp = tmpnam( NULL );
-  if ( NULL == ( *name = strdup( tmp ) ) )
-    die( "Out of memory" );
+  const char *forensic = getenv( "RFILE_FORENSIC" );
+  if ( forensic && *forensic ) {
+    tu_mkpath( forensic, 0777 );
+    char *tmp = tu_malloc( strlen( forensic ) + 32 );
+    size_t len = strlen( forensic );
+    memcpy( tmp, forensic, len );
+    tmp[len++] = '/';
+    len += sprintf( tmp + len, "rf.%05d.tmp", next_tmp++ );
+    *name = tmp;
+  }
+  else {
+    tu_cleanup( *name = tu_strdup( tmpnam( NULL ) ) );
+  }
 }
 
 rfile *
@@ -88,9 +203,7 @@ tu_mk_range_list( rfile_range * rl, size_t rlcount, size_t dsize,
 void
 tu_shuffle( void *base, size_t nel, size_t width, unsigned seed ) {
   unsigned pos;
-  void *tmp;
-  if ( NULL == ( tmp = malloc( width ) ) )
-    die( "Out of memory" );
+  void *tmp = tu_malloc( width );
   for ( pos = 0; pos < nel - 1; pos++ ) {
     unsigned pick = ( unsigned ) tu_bigrand( nel - pos - 1, &seed );
     memcpy( tmp, ELTPT( base, width, pick + pos + 1 ), width );

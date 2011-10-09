@@ -12,6 +12,13 @@
 
 void check_rc( const char *file, int line, int rc );
 void rand_fill( void *mem, size_t size, unsigned seed );
+
+void *tu_malloc( size_t sz );
+char *tu_strdup( const char *s );
+
+void tu_cleanup( const char *filename );
+void tu_mkpath( const char *path, mode_t mode );
+void tu_mkpath_for( const char *path, mode_t mode );
 void tu_tmp( char **name );
 rfile *tu_create( char **name );
 uint64_t tu_bigrand( uint64_t max, unsigned *seed );
