@@ -7,6 +7,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <libgen.h>
 
 #include "testutil.h"
 #include "tap.h"
@@ -93,14 +94,10 @@ rand_fill( void *mem, size_t size, unsigned seed ) {
 
 static char *
 tu__dirname( const char *name ) {
-  char *dir = tu_strdup( name );
-  char *slash = strrchr( dir, '/' );
-  if ( slash ) {
-    *slash = '\0';
-    return dir;
-  }
-  free( dir );
-  return NULL;
+  char *tmp = tu_strdup( name );
+  char *dir = tu_strdup( dirname( tmp ) );
+  free( tmp );
+  return dir;
 }
 
 void
