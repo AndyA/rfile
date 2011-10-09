@@ -17,7 +17,7 @@
 #include <stddef.h>
 #include <sys/types.h>
 
-#define rfile_ALIGNMENT   8
+#define rfile_ALIGNMENT   4
 #define rfile_ALIGNDOWN(n) ((n) / rfile_ALIGNMENT * rfile_ALIGNMENT)
 #define rfile_ALIGNUP(n)   rfile_ALIGNDOWN(n + rfile_ALIGNMENT - 1)
 
