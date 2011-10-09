@@ -32,3 +32,4 @@ src/rfile_struct.*
 stamp-h1
 tags
 tests/basic
+tests/refs
