@@ -338,7 +338,7 @@ rfile__load_ref( rfile * rf, rfile_ref * ref ) {
       goto fail;
   }
 
-  rname = rfile_fn_rel2abs( ref->ref, rf->fname );
+  rname = rfile_fn_rel2abs_file( ref->ref, rf->fname );
 
   if ( ref->fd = open( rname, O_RDONLY ), ref->fd < 0 )
     goto fail;

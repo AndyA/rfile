@@ -2,6 +2,7 @@
 
 #include <ctype.h>
 #include <errno.h>
+#include <libgen.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/param.h>
@@ -89,8 +90,20 @@ rfile_fn_tidy( const char *name ) {
 }
 
 char *
+rfile_fn_dirname( const char *file ) {
+  char *fn, *dn;
+  if ( ( fn = strdup( file ), !fn )
+       || ( dn = strdup( dirname( fn ) ), !dn ) ) {
+    errno = ENOMEM;
+    return NULL;
+  }
+  free( fn );
+  return dn;
+}
+
+char *
 rfile_fn_rel2abs( const char *rel, const char *base ) {
-  char bd[MAXPATHLEN * 2], *abs;
+  char bd[MAXPATHLEN * 2];
   size_t blen, rlen;
 
   if ( rfile_fn_is_abs( rel ) ) {
@@ -98,23 +111,24 @@ rfile_fn_rel2abs( const char *rel, const char *base ) {
   }
   else {
     if ( base ) {
-      blen = strlen( base );
-      while ( blen > 0 && base[blen - 1] != '/' )
-        blen--;
+      char *ab = rfile_fn_rel2abs( base, NULL );
+      blen = strlen( ab );
       if ( blen + 1 > sizeof( bd ) ) {
         errno = EINVAL;
         return NULL;
       }
-      memcpy( bd, base, blen );
-      bd[blen] = '\0';
+      memcpy( bd, ab, blen );
+      free( ab );
     }
     else {
       if ( !getcwd( bd, sizeof( bd ) - 1 ) )
         return NULL;
       blen = strlen( bd );
-      bd[blen++] = '/';
     }
   }
+
+  if ( bd[blen] != '/' )
+    bd[blen++] = '/';
 
   rlen = strlen( rel ) + 1;
 
@@ -125,11 +139,17 @@ rfile_fn_rel2abs( const char *rel, const char *base ) {
 
   memcpy( bd + blen, rel, rlen );
 
-  if ( ( abs = strdup( bd ) ) )
-    return abs;
+  return rfile_fn_tidy( bd );
+}
 
-  errno = ENOMEM;
-  return NULL;
+char *
+rfile_fn_rel2abs_file( const char *rel, const char *base_file ) {
+  char *base, *abs;
+  if ( base = rfile_fn_dirname( base_file ), !base )
+    return NULL;
+  abs = rfile_fn_rel2abs( rel, base );
+  free( base );
+  return abs;
 }
 
 /* vim:ts=2:sw=2:sts=2:et:ft=c 
