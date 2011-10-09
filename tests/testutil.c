@@ -118,7 +118,6 @@ tu_mkpath( const char *path, mode_t mode ) {
     tu_mkpath( dir, mode );
     free( dir );
   }
-  printf( "mkdir(\"%s\")\n", path );
   if ( mkdir( path, mode ) )
     goto fail;
   return;
