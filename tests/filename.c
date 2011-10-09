@@ -133,6 +133,8 @@ test_004( void ) {
               "../../dict/foo", "up, up, down, down (rel)" );
 
   abs2rel_ok( "/private/tmp", "/", "private/tmp", "close to root" );
+  abs2rel_file_ok( "/private/tmp", "/tmp", "private/tmp",
+                   "close to root" );
 
   abs2rel_file_ok( "/usr/local/bin/perl", "/usr/bin/perl",
                    "../local/bin/perl", "from file 1" );
@@ -142,7 +144,7 @@ int
 test_main( int argc, char *argv[] ) {
   ( void ) argc;
   ( void ) argv;
-  plan( 33 );
+  plan( 34 );
   test_001(  );
   test_002(  );
   test_003(  );
