@@ -6,11 +6,11 @@
 #include "rfile.h"
 
 #define check( rc ) \
-  check_rc(__FILE__, __LINE__, rc)
+  check_rc(__FILE__, __LINE__, # rc, rc)
 
 #define countof(ar) (sizeof(ar) / sizeof(ar[0]))
 
-void check_rc( const char *file, int line, int rc );
+void check_rc( const char *file, int line, const char *src, int rc );
 void rand_fill( void *mem, size_t size, unsigned seed );
 
 void *tu_malloc( size_t sz );

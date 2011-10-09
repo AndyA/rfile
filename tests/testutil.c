@@ -76,9 +76,10 @@ tu_cleanup( char *filename ) {
 }
 
 void
-check_rc( const char *file, int line, int rc ) {
+check_rc( const char *file, int line, const char *src, int rc ) {
   if ( rc )
-    die( "%s, %d: error: %s", file, line, strerror( errno ) );
+    die( "%s, %d (\"%s\"): error: %s", file, line, src,
+         strerror( errno ) );
 }
 
 void
@@ -194,6 +195,7 @@ tu_mk_range_list( rfile_range * rl, size_t rlcount, size_t dsize,
     rl[rlpos].start = rl[rlpos].end = tu_bigrand( dsize, &seed );
     rlpos++;
   }
+  /* sort */
   qsort( rl, rlcount, sizeof( rl[0] ), cmp_range );
   for ( rlpos = 0; rlpos < rlcount - 1; rlpos++ ) {
     rl[rlpos].end = rl[rlpos + 1].start;
