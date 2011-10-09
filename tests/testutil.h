@@ -8,6 +8,9 @@
 #define check( rc ) \
   check_rc(__FILE__, __LINE__, # rc, rc)
 
+#define LOC( s ) \
+  "%s, %d: " s, __FILE__, __LINE__
+
 #define countof(ar) (sizeof(ar) / sizeof(ar[0]))
 
 void check_rc( const char *file, int line, const char *src, int rc );
