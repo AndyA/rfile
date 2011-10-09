@@ -1,13 +1,14 @@
 /* testutil.c */
 
 #include <errno.h>
+#include <libgen.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/param.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <libgen.h>
 
 #include "testutil.h"
 #include "tap.h"
@@ -21,6 +22,8 @@ struct tu__cleanup_file {
   tu__cleanup_file *next;
   char *name;
 };
+
+static char *exe_name = NULL;
 
 static tu__cleanup_file *cl_file = NULL;
 static unsigned next_tmp = 1;
@@ -197,10 +200,12 @@ tu_tmp( void ) {
   if ( forensic && *forensic ) {
     tu_mkpath( forensic, 0777 );
     size_t len = strlen( forensic );
-    char *tmp = tu_malloc( len + 32 );
+    char *tmp = tu_malloc( len + MAXPATHLEN );
     memcpy( tmp, forensic, len );
     tmp[len++] = '/';
-    len += sprintf( tmp + len, "rf.%05d.tmp", next_tmp++ );
+    len +=
+        sprintf( tmp + len, "rf.%s.%lu.%05d.tmp",
+                 exe_name, ( unsigned long ) getpid(  ), next_tmp++ );
     return tmp;
   }
   else {
@@ -272,6 +277,12 @@ tu_shuffle( void *base, size_t nel, size_t width, unsigned seed ) {
     memcpy( ELTPT( base, width, pos ), tmp, width );
   }
   free( tmp );
+}
+
+int
+main( int argc, char *argv[] ) {
+  exe_name = tu_strdup( basename( argv[0] ) );
+  return test_main( argc, argv );
 }
 
 /* vim:ts=2:sw=2:sts=2:et:ft=c 

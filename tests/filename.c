@@ -16,7 +16,9 @@ test_001( void ) {
 }
 
 int
-main( void ) {
+test_main( int argc, char *argv[] ) {
+  ( void ) argc;
+  ( void ) argv;
   plan( 1 );
   test_001(  );
   return 0;

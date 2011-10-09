@@ -149,7 +149,9 @@ test_002( void ) {
 }
 
 int
-main( void ) {
+test_main( int argc, char *argv[] ) {
+  ( void ) argc;
+  ( void ) argv;
   plan( 3242 );
   test_001(  );
   test_002(  );

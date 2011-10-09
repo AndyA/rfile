@@ -13,6 +13,8 @@
 
 #define countof(ar) (sizeof(ar) / sizeof(ar[0]))
 
+int test_main( int argc, char *argv[] );
+
 void check_rc( const char *file, int line, const char *src, int rc );
 void tu_rand_fill( void *mem, size_t size, unsigned seed );
 
