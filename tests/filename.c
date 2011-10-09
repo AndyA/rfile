@@ -12,6 +12,45 @@
 #include "rfile.h"
 #include "filename.h"
 
+#define OK1( fn, p1, fmt )                                \
+  static int                                              \
+  fn ## _ok( p1, const char *want, const char *msg ) {    \
+    char *got = non_null( rfile_fn_ ## fn( a1 ) );        \
+    int r = !strcmp( got, want );                         \
+    ok( r, # fn ": %s (" fmt " -> %s)", msg, a1, want );  \
+    if ( !r ) {                                           \
+      diag( " got: %s", got );                            \
+      diag( "want: %s", want );                           \
+    }                                                     \
+    free( got );                                          \
+    return r;                                             \
+  }
+
+#define OK2( fn, p1, p2, fmt )                               \
+  static int                                                 \
+  fn ## _ok( p1, p2, const char *want, const char *msg ) {   \
+    char *got = non_null( rfile_fn_ ## fn( a1, a2 ) );       \
+    int r = !strcmp( got, want );                            \
+    ok( r, # fn ": %s (" fmt " -> %s)", msg, a1, a2, want ); \
+    if ( !r ) {                                              \
+      diag( " got: %s", got );                               \
+      diag( "want: %s", want );                              \
+    }                                                        \
+    free( got );                                             \
+    return r;                                                \
+  }
+
+static char *
+non_null( char *s ) {
+  return s ? s : tu_strdup( "NULL" );
+}
+
+OK1( tidy, const char *a1, "%s" );
+OK2( rel2abs, const char *a1, const char *a2, "%s, %s" );
+OK2( rel2abs_file, const char *a1, const char *a2, "%s, %s" );
+OK2( abs2rel, const char *a1, const char *a2, "%s, %s" );
+OK2( abs2rel_file, const char *a1, const char *a2, "%s, %s" );
+
 static void
 test_001( void ) {
   ok( rfile_fn_is_url( "http://example.com" ), "is url" );
@@ -20,33 +59,6 @@ test_001( void ) {
 
   ok( rfile_fn_is_abs( "/usr/local" ), "is abs" );
   ok( !rfile_fn_is_abs( "http/example.com" ), "is relative" );
-}
-
-static int
-tidy_ok( const char *in, const char *want, const char *msg ) {
-  char *got = rfile_fn_tidy( in );
-  int r = !strcmp( got, want );
-  ok( r, "%s (%s -> %s)", msg, in, want );
-  if ( !r ) {
-    diag( " got: %s", got );
-    diag( "want: %s", want );
-  }
-  free( got );
-  return r;
-}
-
-static int
-rel2abs_ok( const char *rel, const char *base, const char *want,
-            const char *msg ) {
-  char *got = rfile_fn_rel2abs( rel, base );
-  int r = !strcmp( got, want );
-  ok( r, "%s (%s, %s -> %s)", msg, rel, base ? base : "NULL", want );
-  if ( !r ) {
-    diag( " got: %s", got );
-    diag( "want: %s", want );
-  }
-  free( got );
-  return r;
 }
 
 static void
@@ -89,20 +101,50 @@ test_003( void ) {
     rel2abs_ok( "bar/../foo", NULL, want, "abs relative to cwd" );
   }
 
+  {
+    char want[MAXPATHLEN];
+
+    strcpy( want, cwd );
+    strcat( want, "/foo" );
+
+    rel2abs_ok( "../foo", "bar", want, "abs relative to relative" );
+  }
+
   rel2abs_ok( "/", NULL, "/", "abs unchanged 1" );
   rel2abs_ok( "/", "../foo", "/", "abs unchanged 2" );
 
   rel2abs_ok( "../../bin", "/usr/local/bin", "/usr/bin", "up and down" );
+
+  rel2abs_file_ok( "../local/bin/perl", "/usr/bin/perl",
+                   "/usr/local/bin/perl", "from file 1" );
+}
+
+static void
+test_004( void ) {
+  abs2rel_ok( "/usr/local/share/dict", "/usr/local/share", "dict",
+              "no up" );
+  abs2rel_ok( "/usr/local/share/dict", "/usr/local/share/doc", "../dict",
+              "up, down" );
+
+  abs2rel_ok( "/usr/local/share/dict/foo", "/usr/local/share/doc/bar",
+              "../../dict/foo", "up, up, down, down (abs)" );
+
+  abs2rel_ok( "dict/foo", "doc/bar",
+              "../../dict/foo", "up, up, down, down (rel)" );
+
+  abs2rel_file_ok( "/usr/local/bin/perl", "/usr/bin/perl",
+                   "../local/bin/perl", "from file 1" );
 }
 
 int
 test_main( int argc, char *argv[] ) {
   ( void ) argc;
   ( void ) argv;
-  plan( 25 );
+  plan( 32 );
   test_001(  );
   test_002(  );
   test_003(  );
+  test_004(  );
   return 0;
 }
 

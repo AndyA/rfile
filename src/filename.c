@@ -29,14 +29,20 @@ _inplace_strcpy( char *dst, const char *src ) {
   memmove( dst, src, len + 1 );
 }
 
+static char *
+_my_strdup( const char *s ) {
+  char *ns = strdup( s );
+  if ( !ns )
+    errno = ENOMEM;
+  return ns;
+}
+
 char *
 rfile_fn_tidy( const char *name ) {
   char *fn, *pos;
 
-  if ( fn = strdup( name ), !fn ) {
-    errno = ENOMEM;
+  if ( fn = _my_strdup( name ), !fn )
     return NULL;
-  }
 
   for ( pos = fn; ( pos = strstr( pos, "//" ) ); )
     _inplace_strcpy( pos, pos + 1 );
@@ -98,11 +104,9 @@ rfile_fn_tidy( const char *name ) {
 char *
 rfile_fn_dirname( const char *file ) {
   char *fn, *dn;
-  if ( ( fn = strdup( file ), !fn )
-       || ( dn = strdup( dirname( fn ) ), !dn ) ) {
-    errno = ENOMEM;
+  if ( ( fn = _my_strdup( file ), !fn )
+       || ( dn = _my_strdup( dirname( fn ) ), !dn ) )
     return NULL;
-  }
   free( fn );
   return dn;
 }
@@ -132,9 +136,10 @@ rfile_fn_rel2abs( const char *rel, const char *base ) {
       blen = strlen( bd );
     }
 
-    if ( bd[blen] != '/' )
+    if ( bd[blen - 1] != '/' )
       bd[blen++] = '/';
   }
+  bd[blen] = '\0';
 
   rlen = strlen( rel ) + 1;
 
@@ -156,6 +161,83 @@ rfile_fn_rel2abs_file( const char *rel, const char *base_file ) {
   abs = rfile_fn_rel2abs( rel, base );
   free( base );
   return abs;
+}
+
+static char *
+_add_slash( char *s ) {
+  char *ns = NULL;
+  size_t l;
+  if ( !s )
+    return NULL;
+  l = strlen( s );
+  if ( s[l - 1] == '/' )
+    return s;
+  if ( ns = malloc( l + 2 ), !ns ) {
+    errno = ENOMEM;
+    goto done;
+  }
+  memcpy( ns, s, l );
+  strcpy( ns + l, "/" );
+done:
+  free( s );
+  return ns;
+}
+
+char *
+rfile_fn_abs2rel( const char *abs, const char *base ) {
+  char *ab, *ba;
+  char *ab2, *ba2;
+  char *rv = NULL;
+  char *pp;
+  unsigned npart, i;
+
+  if ( ab = ab2 = rfile_fn_rel2abs( abs, NULL ), !ab )
+    return NULL;
+  if ( ba = ba2 = _add_slash( rfile_fn_rel2abs( base, NULL ) ), !ba )
+    goto done;
+
+again:{
+    char *abn = strchr( ab, '/' );
+    char *ban = strchr( ba, '/' );
+    if ( abn && ban && abn - ab == ban - ba
+         && !memcmp( ab, ba, abn - ab ) ) {
+      ab = abn + 1;
+      ba = ban + 1;
+      goto again;
+    }
+  }
+
+  if ( !*ba ) {
+    rv = _my_strdup( ab );
+    goto done;
+  }
+
+  for ( npart = 0, pp = ba; ( pp = strchr( pp, '/' ) ); pp++, npart++ ) ;
+
+  if ( rv = malloc( strlen( ab ) + npart * 3 + 1 ), !rv )
+    goto done;
+
+  for ( pp = rv, i = 0; i < npart; i++ ) {
+    strcpy( pp, "../" );
+    pp += 3;
+  }
+
+  strcpy( pp, ab );
+
+done:
+  free( ab2 );
+  free( ba2 );
+  return rv;
+}
+
+char *
+rfile_fn_abs2rel_file( const char *abs, const char *base_file ) {
+  char *base, *rel;
+  if ( base = rfile_fn_dirname( base_file ), !base )
+    return NULL;
+  rel = rfile_fn_abs2rel( abs, base );
+  free( base );
+  return rel;
 }
 
 /* vim:ts=2:sw=2:sts=2:et:ft=c 
