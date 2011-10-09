@@ -559,11 +559,11 @@ rfile_writeref( rfile * rf, const rfile_ref * ref ) {
   pos = lseek( rf->fd, 0, SEEK_END );
 
   if ( rfile_chunk_header_writer( rf, &hdr ) ||
-       rfile_bits_rewind( &b ) ||
-       rfile_bits_write( &b, rf->fd, b.used ) ||
-       rfile_chunk_header_writer( rf, &hdr ) )
+       rfile_bits_rewind( &b ) || rfile_bits_write( &b, rf->fd, b.used ) )
     goto fail;
-
+  hdr.type = rfile_REF_OUT;
+  if ( rfile_chunk_header_writer( rf, &hdr ) )
+    goto fail;
   rfile_bits_destroy( &b );
   return expsz;
 
