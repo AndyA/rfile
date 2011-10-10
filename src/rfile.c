@@ -50,6 +50,20 @@ rfile__extent( rfile * rf, off_t * extp ) {
   return 0;
 }
 
+static int
+rfile__truncate( int fd, off_t length ) {
+  int en = errno;
+
+  /* thwart GCC's attempt to warn us about discarding the result. We
+   * really don't care; we're just trying to roll back a failed write at
+   * this point 
+   */
+  int rc = ftruncate( fd, length );
+  (void) rc;
+  errno = en;
+  return 0;
+}
+
 static void
 rfile__clear_ref( rfile_ref * ref ) {
   if ( ref ) {
@@ -520,7 +534,7 @@ rfile_writev( rfile * rf, const struct iovec * iov, int iovcnt ) {
   return bc;
 
 fail:
-  ftruncate( rf->fd, pos );
+  rfile__truncate( rf->fd, pos );
   return -1;
 }
 
@@ -596,7 +610,7 @@ rfile_writeref( rfile * rf, const rfile_ref * ref ) {
 
 fail:
   rfile_bits_destroy( &b );
-  ftruncate( rf->fd, pos );
+  rfile__truncate( rf->fd, pos );
   return -1;
 }
 
