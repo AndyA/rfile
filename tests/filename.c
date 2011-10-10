@@ -107,14 +107,6 @@ test_003( void ) {
     strcat( want, "/foo" );
 
     rel2abs_ok( "bar/../foo", NULL, want, "abs relative to cwd" );
-  }
-
-  {
-    char want[MAXPATHLEN];
-
-    strcpy( want, cwd );
-    strcat( want, "/foo" );
-
     rel2abs_ok( "../foo", "bar", want, "abs relative to relative" );
   }
 
