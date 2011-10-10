@@ -48,7 +48,7 @@ rfile_fn_tidy( const char *name ) {
     _inplace_strcpy( pos, pos + 1 );
 
   for ( pos = fn; ( pos = strstr( pos, "./" ) ); ) {
-    if ( ( pos == fn && pos[2] ) || pos[-1] == '/' ) {
+    if ( ( pos == fn && pos[2] ) || ( pos > fn && pos[-1] == '/' ) ) {
       _inplace_strcpy( pos, pos + 2 );
       continue;
     }
