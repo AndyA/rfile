@@ -51,6 +51,11 @@ OK2( rel2abs_file, const char *a1, const char *a2, "%s, %s" );
 OK2( abs2rel, const char *a1, const char *a2, "%s, %s" );
 OK2( abs2rel_file, const char *a1, const char *a2, "%s, %s" );
 
+static int
+tidy_nop_ok( const char *inout ) {
+  return tidy_ok( inout, inout, "tidy is nop" );
+}
+
 static void
 test_001( void ) {
   ok( rfile_fn_is_url( "http://example.com" ), "is url" );
@@ -63,7 +68,10 @@ test_001( void ) {
 
 static void
 test_002( void ) {
-  tidy_ok( "nothing/to/see/here", "nothing/to/see/here", "no tidy" );
+  tidy_nop_ok( "nothing/to/see/here" );
+  tidy_nop_ok( ".strange./.but./.true." );
+  tidy_nop_ok( "..stranger../..but../..still../..true../.../..." );
+
   tidy_ok( "//usr///local//bin/foo", "/usr/local/bin/foo",
            "extra slashes" );
 
@@ -142,7 +150,7 @@ int
 test_main( int argc, char *argv[] ) {
   ( void ) argc;
   ( void ) argv;
-  plan( 33 );
+  plan( 35 );
   test_001(  );
   test_002(  );
   test_003(  );
