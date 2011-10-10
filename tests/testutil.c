@@ -281,8 +281,11 @@ tu_shuffle( void *base, size_t nel, size_t width, unsigned seed ) {
 
 int
 main( int argc, char *argv[] ) {
+  int rc;
   exe_name = tu_strdup( basename( argv[0] ) );
-  return test_main( argc, argv );
+  rc = test_main( argc, argv );
+  free( exe_name );
+  return rc;
 }
 
 /* vim:ts=2:sw=2:sts=2:et:ft=c 
