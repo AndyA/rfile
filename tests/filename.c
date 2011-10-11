@@ -10,7 +10,7 @@
 #include "tap.h"
 #include "testutil.h"
 #include "rfile.h"
-#include "filename.h"
+#include "rfile_filename.h"
 
 #define OK1( fn, p1, fmt )                                \
   static int                                              \

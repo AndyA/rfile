@@ -1,7 +1,7 @@
-/* filename.h */
+/* rfile_filename.h */
 
-#ifndef __FILENAME_H
-#define __FILENAME_H
+#ifndef __RFILE_FILENAME_H
+#define __RFILE_FILENAME_H
 
 int rfile_fn_is_url( const char *fn );
 int rfile_fn_is_abs( const char *fn );

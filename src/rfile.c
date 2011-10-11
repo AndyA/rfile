@@ -4,8 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "bits.h"
-#include "filename.h"
+#include "rfile_bits.h"
+#include "rfile_filename.h"
 #include "rfile.h"
 
 #include "rfile_struct.h"

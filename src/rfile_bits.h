@@ -1,7 +1,7 @@
-/* bits.h */
+/* rfile_bits.h */
 
-#ifndef __BITS_H
-#define __BITS_H
+#ifndef __RFILE_BITS_H
+#define __RFILE_BITS_H
 
 #include "../config.h"
 

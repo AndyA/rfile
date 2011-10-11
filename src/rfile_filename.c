@@ -1,4 +1,4 @@
-/* filename.c */
+/* rfile_filename.c */
 
 #include <ctype.h>
 #include <errno.h>
@@ -8,7 +8,7 @@
 #include <sys/param.h>
 #include <unistd.h>
 
-#include "filename.h"
+#include "rfile_filename.h"
 
 int
 rfile_fn_is_url( const char *fn ) {

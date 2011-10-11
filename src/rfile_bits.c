@@ -1,11 +1,11 @@
-/* bits.c */
+/* rfile_bits.c */
 
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
-#include "bits.h"
+#include "rfile_bits.h"
 
 static int rfile__bits_destroy_static( rfile_bits * bits );
 static int rfile__bits_grow_static( rfile_bits * bits, size_t size );
