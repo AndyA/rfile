@@ -28,7 +28,6 @@ static int
 rfile__extent( rfile * rf, off_t * extp ) {
   rfile_chunk_header hdr;
   off_t pos;
-  int rc;
 
   pos = lseek( rf->fd, 0, SEEK_END );
   if ( pos < 0 )
@@ -44,7 +43,7 @@ rfile__extent( rfile * rf, off_t * extp ) {
   if ( pos < 0 )
     return -1;
 
-  rc = rfile_chunk_header_reader( rf, &hdr );
+  (void) rfile_chunk_header_reader( rf, &hdr );
   *extp = hdr.pos.end;
 
   return 0;
