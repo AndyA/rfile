@@ -10,14 +10,6 @@
 #include <sys/uio.h>
 #include <unistd.h>
 
-#ifdef HAVE_INTTYPES_H
-#include <inttypes.h>
-#endif
-
-#ifdef HAVE_STDINT_H
-#include <stdint.h>
-#endif
-
 #define rfile_FOURCC(s0, s1, s2, s3) \
   ( (unsigned int) \
     ( ( (unsigned char) (s3) << 24 ) | \
