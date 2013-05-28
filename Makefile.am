@@ -10,7 +10,7 @@ lib_LTLIBRARIES = librfile.la
 
 include_HEADERS = rfile.h
 
-bin_PROGRAMS = rfcat
+bin_PROGRAMS = rfcat rfbuild
 
 librfile_la_SOURCES = \
 	rfile.c rfile.h \
@@ -21,6 +21,9 @@ librfile_la_LDFLAGS = -avoid-version
 
 rfcat_SOURCES = rfcat.c
 rfcat_LDADD = librfile.la
+
+rfbuild_SOURCES = rfbuild.c
+rfbuild_LDADD = librfile.la
 
 test: all
 	cd t && $(MAKE) test
