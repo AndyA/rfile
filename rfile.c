@@ -1,5 +1,6 @@
 /* rfile.c */
 
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -168,8 +169,14 @@ int rfile_stat(const char *path, struct stat *buf) {
   return rc;
 }
 
-static rfile *rfile__open(const char *name, int oflag, mode_t mode) {
+rfile *rfile_open(const char *name, int oflag, ...) {
   rfile *rf;
+  mode_t mode = 0;
+
+  va_list ap;
+  va_start(ap, oflag);
+  if (oflag & O_CREAT) mode = va_arg(ap, mode_t);
+  va_end(ap);
 
   if (rfile__new(&rf, name) < 0) return NULL;
   if (rf->fd = open(name, oflag, mode), rf->fd < 0) goto fail;
@@ -183,11 +190,7 @@ fail:
 }
 
 rfile *rfile_create(const char *name, mode_t mode) {
-  return rfile__open(name, O_CREAT | O_TRUNC | O_RDWR, mode);
-}
-
-rfile *rfile_open(const char *name, int oflag) {
-  return rfile__open(name, oflag, 0);
+  return rfile_open(name, O_CREAT | O_TRUNC | O_RDWR, mode);
 }
 
 int rfile_close(rfile *rf) {

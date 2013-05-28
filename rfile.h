@@ -65,8 +65,8 @@ typedef struct {
 
 int rfile_fstat(rfile *rf, struct stat *buf);
 int rfile_stat(const char *path, struct stat *buf);
+rfile *rfile_open(const char *name, int oflag, ...);
 rfile *rfile_create(const char *name, mode_t mode);
-rfile *rfile_open(const char *name, int oflag);
 int rfile_close(rfile *rf);
 off_t rfile_lseek(rfile *rf, off_t offset, int whence);
 ssize_t rfile_read(rfile *rf, void *buf, size_t nbyte);
