@@ -192,14 +192,13 @@ int rfile_stat(const char *path, struct stat *buf) {
   return rc;
 }
 
-rfile *rfile_create(const char *name, mode_t mode) {
+static rfile *rfile__open(const char *name, int oflag, mode_t mode) {
   rfile *rf;
 
   if (rfile__new(&rf, name) < 0)
     return NULL;
 
-  if (rf->fd =
-        open(name, O_CREAT | O_TRUNC | O_RDWR, mode), rf->fd < 0)
+  if (rf->fd = open(name, oflag, mode), rf->fd < 0)
     goto fail;
 
   if (rfile__extent(rf, &rf->ext) < 0)
@@ -212,23 +211,12 @@ fail:
   return NULL;
 }
 
+rfile *rfile_create(const char *name, mode_t mode) {
+  return rfile__open(name, O_CREAT | O_TRUNC | O_RDWR, mode);
+}
+
 rfile *rfile_open(const char *name, int oflag) {
-  rfile *rf;
-
-  if (rfile__new(&rf, name) < 0)
-    return NULL;
-
-  if (rf->fd = open(name, oflag), rf->fd < 0)
-    goto fail;
-
-  if (rfile__extent(rf, &rf->ext) < 0)
-    goto fail;
-
-  return rf;
-
-fail:
-  rfile_close(rf);
-  return NULL;
+  return rfile__open(name, oflag, 0);
 }
 
 int rfile_close(rfile *rf) {
