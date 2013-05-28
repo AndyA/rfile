@@ -179,7 +179,8 @@ static void parse_include(struct parser *p, rfile *rf) {
 static void parse_ref(struct parser *p, rfile *rf) {
   rfile_ref ref;
   parse_fileref(p, &ref);
-  rfile_writeref(rf, &ref);
+  if (rfile_writeref(rf, &ref) < 0)
+    die("Failed to append reference");
   free(ref.range);
   free(ref.ref);
 }

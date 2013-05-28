@@ -507,6 +507,8 @@ ssize_t rfile_writeref(rfile *rf, const rfile_ref *ref) {
   hdr.type = rfile_REF_OUT;
   if (rfile_chunk_header_writer(rf, &hdr)) goto fail;
   rfile_bits_destroy(&b);
+  rf->ext += expsz;
+  rf->fptr = rf->ext;
   return expsz;
 
 fail:
