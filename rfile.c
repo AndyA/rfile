@@ -41,6 +41,7 @@ static int rfile__extent(rfile *rf, off_t *extp) {
   if (pos < 0) return -1;
 
   (void) rfile_chunk_header_reader(rf, &hdr);
+  if (hdr.sig != rfile_SIG) return -1;
   *extp = hdr.pos.end;
 
   return 0;
@@ -113,6 +114,7 @@ static off_t rfile__iov_len(const struct iovec *iov, int iovcnt) {
 static int rfile__setpos(rfile *rf, off_t pos) {
   if (lseek(rf->fd, pos, SEEK_SET) < 0) return -1;
   if (rfile_chunk_header_reader(rf, &rf->c_hdr) < 0) return -1;
+  if (rf->c_hdr.sig != rfile_SIG) return -1;
   rf->c_pos = pos;
   return 0;
 }
