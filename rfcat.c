@@ -22,15 +22,12 @@ int main(int argc, char *argv[]) {
   for (argn = 1; argn < argc; argn++) {
     char buf[16384];
     rfile *rf = rfile_open(argv[argn], O_RDONLY);
-    if (!rf)
-      die("Can't read %s: %s", argv[argn], strerror(errno));
+    if (!rf) die("Can't read %s: %s", argv[argn], strerror(errno));
 
     for (;;) {
       ssize_t got = rfile_read(rf, buf, sizeof(buf));
-      if (got == 0)
-        break;
-      if (got < 0)
-        die("Read error: %s\n", strerror(errno));
+      if (got == 0) break;
+      if (got < 0) die("Read error: %s\n", strerror(errno));
       fwrite(buf, 1, got, stdout);
     }
 

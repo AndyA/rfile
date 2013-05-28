@@ -86,22 +86,18 @@ int rfile_bits_rewind(rfile_bits *bits) {
 }
 
 int rfile_bits_put(rfile_bits *bits, const unsigned char *buf, size_t len) {
-  if (rfile_bits_grow(bits, bits->pos + len) < 0)
-    return -1;
+  if (rfile_bits_grow(bits, bits->pos + len) < 0) return -1;
   memcpy(bits->buf + bits->pos, buf, len);
   bits->pos += len;
-  if (bits->used < (size_t) bits->pos)
-    bits->used = bits->pos;
+  if (bits->used < (size_t) bits->pos) bits->used = bits->pos;
   return 0;
 }
 
 int rfile_bits_pad(rfile_bits *bits, size_t len) {
-  if (rfile_bits_grow(bits, bits->pos + len) < 0)
-    return -1;
+  if (rfile_bits_grow(bits, bits->pos + len) < 0) return -1;
   memset(bits->buf + bits->pos, 0, len);
   bits->pos += len;
-  if (bits->used < (size_t) bits->pos)
-    bits->used = bits->pos;
+  if (bits->used < (size_t) bits->pos) bits->used = bits->pos;
   return 0;
 }
 
@@ -139,8 +135,7 @@ int rfile_bits_put64(rfile_bits *bits, uint64_t v) {
 
 int rfile_bits_get32(rfile_bits *bits, uint32_t *v) {
   unsigned char buf[4];
-  if (rfile_bits_get(bits, buf, sizeof(buf)) < 0)
-    return -1;
+  if (rfile_bits_get(bits, buf, sizeof(buf)) < 0) return -1;
   *v = ((uint32_t) buf[0] << 0)
        | ((uint32_t) buf[1] << 8)
        | ((uint32_t) buf[2] << 16)
@@ -150,8 +145,7 @@ int rfile_bits_get32(rfile_bits *bits, uint32_t *v) {
 
 int rfile_bits_get64(rfile_bits *bits, uint64_t *v) {
   unsigned char buf[8];
-  if (rfile_bits_get(bits, buf, sizeof(buf)) < 0)
-    return -1;
+  if (rfile_bits_get(bits, buf, sizeof(buf)) < 0) return -1;
   *v = ((uint64_t) buf[0] << 0)
        | ((uint64_t) buf[1] << 8)
        | ((uint64_t) buf[2] << 16)
@@ -172,8 +166,7 @@ int rfile_bits_put_data(rfile_bits *bits, const void *data, size_t len) {
 const void *rfile_bits_get_data(rfile_bits *bits, size_t *len) {
   uint32_t sz;
   const void *data;
-  if (rfile_bits_get32(bits, &sz) < 0)
-    return NULL;
+  if (rfile_bits_get32(bits, &sz) < 0) return NULL;
   *len = sz;
   if (bits->pos + sz > (off_t) bits->used) {
     errno = EIO;
@@ -196,18 +189,15 @@ const char *rfile_bits_gets(rfile_bits *bits) {
 int rfile_bits_read(rfile_bits *bits, int fd, size_t len) {
   ssize_t sz;
 
-  if (rfile_bits_grow(bits, bits->pos + len) < 0)
-    return -1;
+  if (rfile_bits_grow(bits, bits->pos + len) < 0) return -1;
   sz = read(fd, bits->buf + bits->pos, len);
-  if (sz < 0)
-    return -1;
+  if (sz < 0) return -1;
   if (sz < (ssize_t) len) {
     errno = EIO;
     return -1;
   }
   bits->pos += len;
-  if (bits->used < (size_t) bits->pos)
-    bits->used = bits->pos;
+  if (bits->used < (size_t) bits->pos) bits->used = bits->pos;
   return 0;
 }
 
@@ -220,8 +210,7 @@ int rfile_bits_write(rfile_bits *bits, int fd, size_t len) {
   }
 
   sz = write(fd, bits->buf + bits->pos, len);
-  if (sz < 0)
-    return -1;
+  if (sz < 0) return -1;
   if (sz < (ssize_t) len) {
     errno = EIO;
     return -1;
@@ -239,12 +228,10 @@ int rfile_bits_piddle(rfile_bits *bits, const char *spec, ...) {
   while ((cs = *spec++)) {
     switch (cs) {
     case 'l':
-      if (rfile_bits_put32(bits, va_arg(ap, uint32_t)))
-        return -1;
+      if (rfile_bits_put32(bits, va_arg(ap, uint32_t))) return -1;
       break;
     case 'L':
-      if (rfile_bits_put64(bits, va_arg(ap, uint64_t)))
-        return -1;
+      if (rfile_bits_put64(bits, va_arg(ap, uint64_t))) return -1;
       break;
     default:
       errno = EINVAL;
@@ -265,12 +252,10 @@ int rfile_bits_guzzle(rfile_bits *bits, const char *spec, ...) {
   while ((cs = *spec++)) {
     switch (cs) {
     case 'l':
-      if (rfile_bits_get32(bits, va_arg(ap, uint32_t *)))
-        return -1;
+      if (rfile_bits_get32(bits, va_arg(ap, uint32_t *))) return -1;
       break;
     case 'L':
-      if (rfile_bits_get64(bits, va_arg(ap, uint64_t *)))
-        return -1;
+      if (rfile_bits_get64(bits, va_arg(ap, uint64_t *))) return -1;
       break;
     default:
       errno = EINVAL;

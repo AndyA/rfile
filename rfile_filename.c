@@ -28,16 +28,14 @@ static void _inplace_strcpy(char *dst, const char *src) {
 
 static char *_my_strdup(const char *s) {
   char *ns = strdup(s);
-  if (!ns)
-    errno = ENOMEM;
+  if (!ns) errno = ENOMEM;
   return ns;
 }
 
 char *rfile_fn_tidy(const char *name) {
   char *fn, *pos;
 
-  if (fn = _my_strdup(name), !fn)
-    return NULL;
+  if (fn = _my_strdup(name), !fn) return NULL;
 
   for (pos = fn; (pos = strstr(pos, "//"));)
     _inplace_strcpy(pos, pos + 1);
@@ -98,9 +96,7 @@ char *rfile_fn_tidy(const char *name) {
 
 char *rfile_fn_dirname(const char *file) {
   char *fn, *dn;
-  if ((fn = _my_strdup(file), !fn)
-      || (dn = _my_strdup(dirname(fn)), !dn))
-    return NULL;
+  if ((fn = _my_strdup(file), !fn) || (dn = _my_strdup(dirname(fn)), !dn)) return NULL;
   free(fn);
   return dn;
 }
@@ -124,13 +120,11 @@ char *rfile_fn_rel2abs(const char *rel, const char *base) {
       free(ab);
     }
     else {
-      if (!getcwd(bd, sizeof(bd) - 1))
-        return NULL;
+      if (!getcwd(bd, sizeof(bd) - 1)) return NULL;
       blen = strlen(bd);
     }
 
-    if (bd[blen - 1] != '/')
-      bd[blen++] = '/';
+    if (bd[blen - 1] != '/') bd[blen++] = '/';
   }
   bd[blen] = '\0';
 
@@ -148,8 +142,7 @@ char *rfile_fn_rel2abs(const char *rel, const char *base) {
 
 char *rfile_fn_rel2abs_file(const char *rel, const char *base_file) {
   char *base, *abs;
-  if (base = rfile_fn_dirname(base_file), !base)
-    return NULL;
+  if (base = rfile_fn_dirname(base_file), !base) return NULL;
   abs = rfile_fn_rel2abs(rel, base);
   free(base);
   return abs;
@@ -159,11 +152,9 @@ static char *
 _add_slash(char *s) {
   char *ns = NULL;
   size_t l;
-  if (!s)
-    return NULL;
+  if (!s) return NULL;
   l = strlen(s);
-  if (s[l - 1] == '/')
-    return s;
+  if (s[l - 1] == '/') return s;
   if (ns = malloc(l + 2), !ns) {
     errno = ENOMEM;
     goto done;
@@ -182,16 +173,13 @@ char *rfile_fn_abs2rel(const char *abs, const char *base) {
   char *pp;
   unsigned npart, i;
 
-  if (ab = ab2 = rfile_fn_rel2abs(abs, NULL), !ab)
-    return NULL;
-  if (ba = ba2 = _add_slash(rfile_fn_rel2abs(base, NULL)), !ba)
-    goto done;
+  if (ab = ab2 = rfile_fn_rel2abs(abs, NULL), !ab) return NULL;
+  if (ba = ba2 = _add_slash(rfile_fn_rel2abs(base, NULL)), !ba) goto done;
 
 again: {
     char *abn = strchr(ab, '/');
     char *ban = strchr(ba, '/');
-    if (abn && ban && abn - ab == ban - ba
-        && !memcmp(ab, ba, abn - ab)) {
+    if (abn && ban && abn - ab == ban - ba && !memcmp(ab, ba, abn - ab)) {
       ab = abn + 1;
       ba = ban + 1;
       goto again;
@@ -205,8 +193,7 @@ again: {
 
   for (npart = 0, pp = ba; (pp = strchr(pp, '/')); pp++, npart++) ;
 
-  if (rv = malloc(strlen(ab) + npart * 3 + 1), !rv)
-    goto done;
+  if (rv = malloc(strlen(ab) + npart * 3 + 1), !rv) goto done;
 
   for (pp = rv, i = 0; i < npart; i++) {
     strcpy(pp, "../");
@@ -223,8 +210,7 @@ done:
 
 char *rfile_fn_abs2rel_file(const char *abs, const char *base_file) {
   char *base, *rel;
-  if (base = rfile_fn_dirname(base_file), !base)
-    return NULL;
+  if (base = rfile_fn_dirname(base_file), !base) return NULL;
   rel = rfile_fn_abs2rel(abs, base);
   free(base);
   return rel;
