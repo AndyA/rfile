@@ -327,7 +327,6 @@ ssize_t rfile__readv(rfile *rf, const struct iovec *iov, int iovcnt,
   }
 
   if (rf->fptr == rf->ext) return 0;
-  if (rfile__seek(rf, rf->fptr) < 0) return -1;
 
   rfile__init_iov_state(&st, iov, iovcnt);
 
@@ -337,6 +336,7 @@ ssize_t rfile__readv(rfile *rf, const struct iovec *iov, int iovcnt,
     int more = 1;
 
     while (more) {
+      if (rfile__seek(rf, rf->fptr) < 0) return -1;
       switch (rf->c_hdr.type) {
       case rfile_DATA_IN:
       case rfile_DATA_OUT:
