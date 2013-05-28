@@ -10,8 +10,7 @@
 #include "testutil.h"
 #include "rfile.h"
 
-static void
-test_001(void) {
+static void test_001(void) {
   char *ref = tu_make_file(12345, 0);
   char *tf = NULL;
   struct stat st, rst;
