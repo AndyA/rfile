@@ -14,7 +14,7 @@ libtest_support_la_LDFLAGS = -static
 LDADD = libtest-support.la ../librfile.la
 
 test: $(TESTBIN)
-	prove -e ./wrap $(TESTBIN) $(TESTPERL)
+	$(PROVE) -e ./wrap $(TESTBIN) $(TESTPERL)
 
 valgrind: $(TESTBIN)
-	prove -e 'valgrind -q' $(addprefix ./,$(TESTBIN))
+	$(PROVE) -e 'valgrind -q' $(addprefix ./,$(TESTBIN))
