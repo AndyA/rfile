@@ -50,7 +50,7 @@ typedef struct {
 } rfile_chunk_header;
 
 #define rfile_ref_ABS  1
-#define rfile_ref_REL  2 
+#define rfile_ref_REL  2
 
 typedef struct {
   char *ref;
@@ -73,19 +73,19 @@ typedef struct {
 
 } rfile;
 
-int rfile_fstat( rfile * rf, struct stat *buf );
-int rfile_stat( const char *path, struct stat *buf );
-rfile *rfile_create( const char *name, mode_t mode );
-rfile *rfile_open( const char *name, int oflag );
-int rfile_close( rfile * rf );
-off_t rfile_lseek( rfile * rf, off_t offset, int whence );
-ssize_t rfile_read( rfile * rf, void *buf, size_t nbyte );
-ssize_t rfile_readv( rfile * rf, const struct iovec *iov, int iovcnt );
-ssize_t rfile_write( rfile * rf, const void *buf, size_t nbyte );
-ssize_t rfile_writev( rfile * rf, const struct iovec *iov, int iovcnt );
-ssize_t rfile_writeref( rfile * rf, const rfile_ref * ref );
+int rfile_fstat(rfile *rf, struct stat *buf);
+int rfile_stat(const char *path, struct stat *buf);
+rfile *rfile_create(const char *name, mode_t mode);
+rfile *rfile_open(const char *name, int oflag);
+int rfile_close(rfile *rf);
+off_t rfile_lseek(rfile *rf, off_t offset, int whence);
+ssize_t rfile_read(rfile *rf, void *buf, size_t nbyte);
+ssize_t rfile_readv(rfile *rf, const struct iovec *iov, int iovcnt);
+ssize_t rfile_write(rfile *rf, const void *buf, size_t nbyte);
+ssize_t rfile_writev(rfile *rf, const struct iovec *iov, int iovcnt);
+ssize_t rfile_writeref(rfile *rf, const rfile_ref *ref);
 
 #endif
 
-/* vim:ts=2:sw=2:sts=2:et:ft=c 
+/* vim:ts=2:sw=2:sts=2:et:ft=c
  */
