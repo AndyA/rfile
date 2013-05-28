@@ -37,6 +37,7 @@ int rfile_bits_init(rfile_bits *bits, size_t size) {
 }
 
 static int rfile__bits_destroy_static(rfile_bits *bits) {
+  (void) bits;
   return 0;
 }
 
@@ -89,7 +90,7 @@ int rfile_bits_put(rfile_bits *bits, const unsigned char *buf, size_t len) {
     return -1;
   memcpy(bits->buf + bits->pos, buf, len);
   bits->pos += len;
-  if (bits->used < bits->pos)
+  if (bits->used < (size_t) bits->pos)
     bits->used = bits->pos;
   return 0;
 }
@@ -99,7 +100,7 @@ int rfile_bits_pad(rfile_bits *bits, size_t len) {
     return -1;
   memset(bits->buf + bits->pos, 0, len);
   bits->pos += len;
-  if (bits->used < bits->pos)
+  if (bits->used < (size_t) bits->pos)
     bits->used = bits->pos;
   return 0;
 }
@@ -174,7 +175,7 @@ const void *rfile_bits_get_data(rfile_bits *bits, size_t *len) {
   if (rfile_bits_get32(bits, &sz) < 0)
     return NULL;
   *len = sz;
-  if (bits->pos + sz > bits->used) {
+  if (bits->pos + sz > (off_t) bits->used) {
     errno = EIO;
     return NULL;
   }
@@ -200,12 +201,12 @@ int rfile_bits_read(rfile_bits *bits, int fd, size_t len) {
   sz = read(fd, bits->buf + bits->pos, len);
   if (sz < 0)
     return -1;
-  if (sz < len) {
+  if (sz < (ssize_t) len) {
     errno = EIO;
     return -1;
   }
   bits->pos += len;
-  if (bits->used < bits->pos)
+  if (bits->used < (size_t) bits->pos)
     bits->used = bits->pos;
   return 0;
 }
@@ -221,7 +222,7 @@ int rfile_bits_write(rfile_bits *bits, int fd, size_t len) {
   sz = write(fd, bits->buf + bits->pos, len);
   if (sz < 0)
     return -1;
-  if (sz < len) {
+  if (sz < (ssize_t) len) {
     errno = EIO;
     return -1;
   }

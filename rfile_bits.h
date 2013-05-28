@@ -3,7 +3,7 @@
 #ifndef __RFILE_BITS_H
 #define __RFILE_BITS_H
 
-#include "../config.h"
+#include "config.h"
 
 #ifdef HAVE_INTTYPES_H
 #include <inttypes.h>
@@ -58,8 +58,7 @@ int rfile_bits_piddle(rfile_bits *bits, const char *spec, ...);
 int rfile_bits_guzzle(rfile_bits *bits, const char *spec, ...);
 
 #define rfile_bits__READER( name, type, spec, mptr, size ) \
-  static int                                              \
-  name( rfile * rf, type * obj ) {                        \
+  int name( rfile * rf, type * obj ) {                    \
     rfile_bits b;                                         \
     unsigned char buf[size];                              \
     return rfile_bits_buf( &b, buf, sizeof( buf ) )       \
@@ -70,8 +69,7 @@ int rfile_bits_guzzle(rfile_bits *bits, const char *spec, ...);
   }
 
 #define rfile_bits__WRITER( name, type, spec, memb, size ) \
-  static int                                              \
-  name( rfile * rf, const type * obj ) {                  \
+  int name( rfile * rf, const type * obj ) {              \
     rfile_bits b;                                         \
     unsigned char buf[size];                              \
     return rfile_bits_buf( &b, buf, sizeof( buf ) )       \
@@ -82,14 +80,12 @@ int rfile_bits_guzzle(rfile_bits *bits, const char *spec, ...);
   }
 
 #define rfile_bits__GUZZLE( name, type, spec, mptr ) \
-  static int                                         \
-  name( rfile_bits * b, type * obj ) {               \
+  int name( rfile_bits * b, type * obj ) {           \
     return rfile_bits_guzzle( b, spec, mptr );       \
   }
 
 #define rfile_bits__PIDDLE( name, type, spec, memb ) \
-  static int                                         \
-  name( rfile_bits * b, const type * obj ) {         \
+  int name( rfile_bits * b, const type * obj ) {     \
     return rfile_bits_piddle( b, spec, memb );       \
   }
 

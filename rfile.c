@@ -156,12 +156,12 @@ static int rfile__seek(rfile *rf, off_t pos) {
     }
   }
 
-  while (rf->c_hdr.pos.end <= pos) {
+  while (rf->c_hdr.pos.end <= (uint64_t) pos) {
     if (rfile__setpos(rf, rf->c_pos + rf->c_hdr.length) < 0)
       return -1;
   }
 
-  while (rf->c_hdr.pos.start > pos) {
+  while (rf->c_hdr.pos.start > (uint64_t) pos) {
     if (rfile__setpos(rf, rf->c_pos - rfile_chunk_header_SIZE) < 0)
       return -1;
     rf->c_pos += rfile_chunk_header_SIZE - rf->c_hdr.length;
@@ -346,10 +346,9 @@ fail:
 }
 
 static int rfile__range_find(const rfile_ref *ref, off_t pos, off_t *start) {
-  int rp;
-  for (rp = 0; rp < ref->count; rp++) {
+  for (unsigned rp = 0; rp < ref->count; rp++) {
     size_t span = ref->range[rp].end - ref->range[rp].start;
-    if (pos < span) {
+    if (pos < (off_t) span) {
       *start = pos + ref->range[rp].start;
       return rp;
     }
@@ -415,7 +414,7 @@ ssize_t rfile__readv(rfile *rf, const struct iovec *iov, int iovcnt,
         fd = ref->fd;
         if (lseek(fd, rseek, SEEK_SET) < 0)
           return -1;
-        more = slot < ref->count;
+        more = slot < (int) ref->count;
       }
       break;
       default:
@@ -431,7 +430,7 @@ ssize_t rfile__readv(rfile *rf, const struct iovec *iov, int iovcnt,
         cnt = readv(fd, iv, ivc);
         if (cnt < 0)
           return cnt;
-        if (cnt != ov - avail) {
+        if ((size_t) cnt != ov - avail) {
           errno = EIO;
           return -1;
         }

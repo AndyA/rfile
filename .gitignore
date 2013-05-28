@@ -7,6 +7,10 @@
 .deps
 .gdb_history
 .libs
+/rfcat
+/stamp-h1
+/tags
+/version.h
 Makefile
 Makefile.in
 Session.vim
@@ -26,12 +30,6 @@ install-sh
 libtool
 ltmain.sh
 missing
+rfcat
 rfile.pc
-src/rfcat
-src/rfile
-src/rfile_struct.*
-stamp-h1
-tags
-tests/basic
-tests/filename
-tests/refs
+rfile_struct.*

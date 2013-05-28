@@ -24,7 +24,7 @@ GetOptions(
 
 my @files = ( @ARGV, @O{ 'c_file', 'h_file' } );
 3 == grep defined, @files or usage();
-serializator( @files );
+serializator(@files);
 
 sub serializator {
   my ( $hdr, $cf, $hf ) = @_;
@@ -32,7 +32,7 @@ sub serializator {
   open my $ch, '>', $cf  or die "Can't write $cf: $!\n";
   open my $hh, '>', $hf  or die "Can't write $hf: $!\n";
 
-  for ( [ $cf, $ch ], [ $hf, $hh ] ) {
+  for ( [$cf, $ch], [$hf, $hh] ) {
     my ( $n, $h ) = @$_;
     print $h "/* $n - GENERATED FILE: DO NOT EDIT\n",
      " * generated from $hdr by $0\n",
@@ -42,9 +42,9 @@ sub serializator {
   my $ser    = 0;
   my @struct = ();
 
-  while ( <$fh> ) {
+  while (<$fh>) {
     chomp( my $line = $_ );
-    if ( $ser ) {
+    if ($ser) {
       $line =~ s{/\*.+?\*/}{}g;
       $line =~ s{^\s+}{}g;
       $line =~ s{\s+$}{}g;
@@ -52,8 +52,8 @@ sub serializator {
         my $def = parse_struct( $1, @struct );
         @struct = ();
         print $_ "\n/* $def->{name} */\n" for $ch, $hh;
-        print $hh ser_defs( $def );
-        print $ch ser_code( $def );
+        print $hh ser_defs($def), "\n", ser_decl($def);
+        print $ch ser_code($def);
         $ser = 0;
       }
       else {
@@ -69,7 +69,7 @@ sub parse_struct {
   my @fld;
   my $typ = '';
   my $sz  = 0;
-  for my $ln ( @struct ) {
+  for my $ln (@struct) {
     die "Can't parse $ln\n" unless $ln =~ /^(\w+)\s+(\w+)\s*;$/;
     my ( $t, $n ) = ( $1, $2 );
     my $tm = $TYPEMAP{$t} or die "No match for type $t\n";
@@ -108,6 +108,17 @@ sub ser_defs {
    . "#define ${n}_MEMB $memb\n"
    . "#define ${n}_SIZE $sz\n";
 
+}
+
+sub ser_decl {
+  my $rec = shift;
+  my $n   = $rec->{name};
+  my $typ = $rec->{typ};
+  return
+     "int ${n}_reader(rfile *rf, $n *obj);\n"
+   . "int ${n}_writer(rfile *rf, const $n *obj);\n"
+   . "int ${n}_guzzle(rfile_bits *b, $n *obj);\n"
+   . "int ${n}_piddle(rfile_bits *b, const $n *obj);\n";
 }
 
 sub ser_code {

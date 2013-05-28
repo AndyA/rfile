@@ -1,32 +1,27 @@
-AC_PREREQ([2.67])
-AC_INIT([rfile], [1.0.0], [andy@hexten.net])
-LT_INIT([disable-static])
-AM_INIT_AUTOMAKE
-AC_CONFIG_FILES([Makefile src/Makefile tests/Makefile rfile.pc])
-AC_CONFIG_SRCDIR([src/rfile.c])
-AC_CONFIG_HEADERS([config.h])
+AC_INIT([rfile],[m4_esyscmd(sh tools/get-version.sh)])
+
 AC_CONFIG_MACRO_DIR([m4])
 
-AC_ARG_VAR([PERL], [PROVE], [Test::Harness runner])
+AM_INIT_AUTOMAKE([foreign])
+AM_MAINTAINER_MODE
 
-AM_CFLAGS="-Wall -Werror -Wno-unused-function"
-AC_SUBST(AM_CFLAGS)
+AC_CONFIG_HEADER([config.h])
 
-# Checks for programs.
-AC_PROG_CC
-AC_PROG_LIBTOOL
-AC_PROG_SED
+BT_PROG_XCODE
+AC_PROG_CC([clang gcc c99 cc])
 AC_PATH_PROG([PERL], [perl])
 AC_PATH_PROG([PROVE], [prove])
 
-# Checks for libraries.
+LT_INIT
 
-# Checks for header files.
+AC_PROG_CC_C99
+AC_SYS_LARGEFILE
+BT_PROG_CC_WARN
 
-# Checks for typedefs, structures, and compiler characteristics.
-AC_TYPE_UINT32_T
-AC_TYPE_UINT64_T
-
-# Checks for library functions.
+AC_CONFIG_FILES([
+Makefile
+t/Makefile
+m4/Makefile
+])
 
 AC_OUTPUT

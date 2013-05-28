@@ -3,14 +3,12 @@
 #ifndef __RFILE_H
 #define __RFILE_H
 
-/* TODO this is unlikely to work when we're installed */
-#include "../config.h"
-
-#include <sys/uio.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
 #include <errno.h>
+#include <fcntl.h>
+#include <stdint.h>
+#include <sys/stat.h>
+#include <sys/uio.h>
+#include <unistd.h>
 
 #ifdef HAVE_INTTYPES_H
 #include <inttypes.h>
